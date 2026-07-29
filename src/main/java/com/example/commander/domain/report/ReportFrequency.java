@@ -74,7 +74,7 @@ public enum ReportFrequency {
         }
         try {
             return ReportFrequency.valueOf(value);
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException _) {
             String enumName = value.toUpperCase().replace('-', '_');
             return ReportFrequency.valueOf(enumName);
         }

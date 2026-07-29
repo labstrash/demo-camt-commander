@@ -37,7 +37,7 @@ Execute the scripts in the following order:
 | 6 | `05-schema-report.sql` | Creates report configuration tables: ReportConfig, ReportAgreementScope |
 | 7 | `06-schema-audit-deadletter.sql` | Creates DeadLetterMessage and ReportCommandAudit tables |
 | 8 | `07-schema-fetch-config.sql` | Creates the `dbo.BigIntIdList` table type for id-set query parameters |
-| 9 | `08-seed-data.sql` | Seeds demo/dev data: 2 happy-path scenarios plus 3 fetch-config read-path edge cases (zero-scope config, dangling PTA, multi-scope fan-in) |
+| 9 | `08-seed-data.sql` | Seeds demo/dev data: happy-path scenarios, fetch-config read-path edge cases, realistic multi-scope onboarding scenarios, multi-payment-type/frequency coverage, and non-active lifecycle states (see Section breakdown below) |
 | 10 | `96-drop-batch.sql` | **CLEANUP**: Drops all Spring Batch (`BATCH_*`) job repository objects |
 | 11 | `97-schema-batch.sql` | Creates the Spring Batch job repository tables and sequences |
 | 12 | `98-drop-quartz.sql` | **CLEANUP**: Drops all Quartz (`QRTZ_*`) job store objects |
@@ -172,8 +172,16 @@ sqlcmd -S <server_name> -d REPORTDB -i 99-schema-quartz.sql
   - **B.1 zero-scope config** — a `ReportConfig` with no `ReportAgreementScope` rows at all
   - **B.2 dangling PTA** — a `PaymentTypeAssignment` with neither accounts nor aliases underneath it
   - **B.3 multi-scope fan-in** — one `ReportConfig` reached via scopes on two separate agreements
+- **Section C (realistic multi-scope scenarios)**: 5 onboarding-style agreements from `testdata_inputs.txt` — two single-scope (account- and alias-routed payment), three dual-scope (independent report type per scope on the same agreement/version). The source input's `INSTDOM`/`INCALIAS` payment types were translated to `INSTANT_PAYMENT` (existing code) and `ALIAS_PAYMENT` (new code, added in `01-schema-reference.sql`) respectively.
+- **Section D (multi-payment-type scope + remaining frequency coverage)**:
+  - **D.1** — a single `AgreementScope` with two `PaymentTypeAssignment` rows (`CREDIT_TRANSFER` + `DIRECT_DEBIT`), each with its own account; also covers `EVERY_4_HOURS`
+  - **D.2/D.3/D.4** — simple single-scope agreements covering the three remaining `ReportFrequency` codes no other seed data exercises: `EVERY_30_MIN`, `EVERY_2_HOURS`, `EIGHT_TIMES_PER_DAY`
+- **Section E (non-active lifecycle states)**:
+  - **E.1 version history** — a `REPLACED` (superseded) `AgreementVersion` alongside the current `ACTIVE` one on the same Agreement
+  - **E.2 pending activation** — an Agreement whose only `AgreementVersion` is `PENDING_ACTIVATION` (no `ACTIVE` version exists yet), with a `PENDING` scope and an inactive `ReportConfig` (`ConfigId` `NULL`)
+  - **E.3 cancelled scope** — an `ACTIVE` version with one `ACTIVE` scope and one `CANCELLED` scope side by side; the cancelled scope's `ReportConfig` is likewise inactive with `ConfigId` `NULL`
 - **No idempotency guards**: consistent with the rest of this directory, since `00-drop-all.sql` always runs first
-- **Validates**: row counts across all seeded tables; asserts the zero-scope config really has zero scopes and the fan-in config really has exactly two
+- **Validates**: row counts across all seeded tables; asserts the zero-scope config really has zero scopes, the fan-in config really has exactly two, the D.1 scope has exactly 2 `PaymentTypeAssignment` rows, the E.1 agreement has exactly 2 versions (one `REPLACED`), and the E.2/E.3 inactive `ReportConfig` rows really have `NULL` `ConfigId`
 
 ### 96-drop-batch.sql
 - **Action**: Drops all Spring Batch (`BATCH_*`) foreign keys, tables, and identity sequences from the `dbo` schema. Scoped strictly to objects named `BATCH_%`, so it can never touch unrelated `dbo` objects.
@@ -275,7 +283,7 @@ SELECT 'ReportFrequency', COUNT(*) FROM CAMT.ReportFrequency;
 
 Expected results:
 - ReportType: 6 rows
-- PaymentType: 4 rows
+- PaymentType: 5 rows
 - ReportFrequency: 9 rows
 
 ### 3. Check foreign keys are enabled
@@ -359,7 +367,13 @@ db/
 For issues with these scripts, contact your database administrator or development team.
 
 ## Version History
-- **2026-07-11 (latest)**: Added `96-drop-batch.sql` / `97-schema-batch.sql` (Spring Batch `JobRepository` metadata tables + sequences, Phase 4 batch pipeline), numbered ahead of Quartz's `98`/`99` pair so both non-CAMT drop/create pairs sit together at the end of the chain, wired into `compose.yaml`
+- **2026-07-30 (latest)**: Extended `08-seed-data.sql` with Sections C, D, E from `testdata_inputs.txt` plus follow-up coverage
+  - Section C: 5 realistic onboarding-style scenarios (single/dual-scope agreements, account- and alias-routed payment)
+  - Section D: a scope with 2 `PaymentTypeAssignment` rows, plus the 3 `ReportFrequency` codes no other seed data exercised (`EVERY_30_MIN`, `EVERY_2_HOURS`, `EIGHT_TIMES_PER_DAY`)
+  - Section E: non-active lifecycle states — version history (`REPLACED` -> `ACTIVE`), pending activation, cancelled scope
+  - Added `ALIAS_PAYMENT` to `CAMT.PaymentType` in `01-schema-reference.sql` (source input's `INCALIAS` code didn't exist; `INSTDOM` was mapped to the existing `INSTANT_PAYMENT` code instead)
+  - Added `AliasAssignment` to the Section VALIDATION row-count query (previously omitted)
+- **2026-07-11**: Added `96-drop-batch.sql` / `97-schema-batch.sql` (Spring Batch `JobRepository` metadata tables + sequences, Phase 4 batch pipeline), numbered ahead of Quartz's `98`/`99` pair so both non-CAMT drop/create pairs sit together at the end of the chain, wired into `compose.yaml`
 - **2026-07-11 (later)**: Added `08-seed-data.sql`, wired into the automated `compose.yaml` init chain
   - Retires the old top-level `infra/docker/init-scripts/02-seed.sql`, which had been orphaned from the init chain during the `db/` restructure
   - Section A: 2 happy-path scenarios (same data as the old seed script)

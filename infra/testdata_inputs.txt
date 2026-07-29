@@ -1,0 +1,200 @@
+1)
+
+Agreement Name: <Any relevant name>
+Engagement Bank: 8999
+Engagement Id: 061111111111
+Channel: Customer Portal
+Track: NOTIFICATION
+Agreement Version Status: ACTIVE
+PricingOrderRef: P2B-061111111111-01
+Agreement Scope Name - CAMT054C - V02 - 4 TIMES
+Payment Type: INSTDOM
+Account Assignment:
+    Clearing Number: 89011
+    Account Number: 504669699
+    Account BBAN: 890110504669699
+
+    Clearing Number: 83279
+    Account Number: 503797518
+    Account BBAN: 832790503797518
+
+Report Type: CAMT054C
+Report Version: V02
+Report Frequency: FOUR_TIMES_PER_DAY
+Account Format: IBAN
+IsActive: True
+IsPaginated: False
+IsEmptyReportAllowed: True
+IsBundled: False
+
+2)
+
+Agreement Name: <Any relevant name>
+Engagement Bank: 8999
+Engagement Id: 061111111112
+Channel: Customer Portal
+Track: NOTIFICATION
+Agreement Version Status: ACTIVE
+PricingOrderRef: P2B-061111111112-02
+Agreement Scope Name - CAMT054C - V02 - 1 TIME
+Payment Type: INCALIAS
+Alias Assignment:
+    AliasId: 11112222
+    AliasId: 22223333
+
+Report Type: CAMT054C
+Report Version: V02
+Report Frequency: ONE_TIME_PER_DAY
+Account Format: IBAN
+IsActive: True
+IsPaginated: False
+IsEmptyReportAllowed: True
+IsBundled: False
+
+3)
+
+Agreement Name: <Any relevant name>
+Engagement Bank: 8999
+Engagement Id: 061111111113
+Channel: Customer Portal
+Track: STANDARD
+Agreement Version Status: ACTIVE
+PricingOrderRef: P2B-061111111113-01
+a) Agreement Scope Name - CAMT054D - V02 - DAILY
+    Payment Type: ALL
+    Account Assignment:
+        Clearing Number: 89011
+        Account Number: 504669699
+        Account BBAN: 890110504669699
+
+        Clearing Number: 83279
+        Account Number: 503797518
+        Account BBAN: 832790503797518
+
+    Report Type: CAMT054D
+    Report Version: V02
+    Report Frequency: DAILY
+    Account Format: IBAN
+    IsActive: True
+    IsPaginated: False
+    IsEmptyReportAllowed: True
+    IsBundled: False
+
+b) Agreement Scope Name - CAMT052B - V02 - SNAPSHOT
+    Payment Type: ALL
+    Account Assignment:
+        Clearing Number: 89012
+        Account Number: 504669601
+        Account BBAN: 890120504669601
+
+        Clearing Number: 83279
+        Account Number: 503797511
+        Account BBAN: 832790503797511
+
+    Report Type: CAMT052B
+    Report Version: V02
+    Report Frequency: SNAPSHOT
+    Account Format: IBAN
+    IsActive: True
+    IsPaginated: False
+    IsEmptyReportAllowed: True
+    IsBundled: False
+
+4)
+
+Agreement Name: <Any relevant name>
+Engagement Bank: 8999
+Engagement Id: 061111111114
+Channel: Customer Portal
+Track: STANDARD
+Agreement Version Status: ACTIVE
+PricingOrderRef: P2B-061111111114-01
+a) Agreement Scope Name - CAMT052BT - V02 - SNAPSHOT
+    Payment Type: ALL
+    Account Assignment:
+        Clearing Number: 89012
+        Account Number: 504669691
+        Account BBAN: 890120504669691
+
+        Clearing Number: 83279
+        Account Number: 503797519
+        Account BBAN: 832790503797519
+
+    Report Type: CAMT052BT
+    Report Version: V02
+    Report Frequency: SNAPSHOT
+    Account Format: IBAN
+    IsActive: True
+    IsPaginated: False
+    IsEmptyReportAllowed: True
+    IsBundled: False
+
+b) Agreement Scope Name - CAMT053S - V02 - EVERY_1_HOUR
+    Payment Type: ALL
+    Account Assignment:
+        Clearing Number: 89013
+        Account Number: 504669602
+        Account BBAN: 890130504669602
+
+        Clearing Number: 83279
+        Account Number: 503797512
+        Account BBAN: 832790503797512
+
+    Report Type: CAMT053S
+    Report Version: V02
+    Report Frequency: EVERY_1_HOUR
+    Account Format: IBAN
+    IsActive: True
+    IsPaginated: False
+    IsEmptyReportAllowed: True
+    IsBundled: True
+
+5)
+
+Agreement Name: <Any relevant name>
+Engagement Bank: 8999
+Engagement Id: 061111111115
+Channel: Customer Portal
+Track: STANDARD
+Agreement Version Status: ACTIVE
+PricingOrderRef: P2B-061111111115-01
+a) Agreement Scope Name - CAMT052BT - V02 - SNAPSHOT
+    Payment Type: ALL
+    Account Assignment:
+        Clearing Number: 89012
+        Account Number: 504669691
+        Account BBAN: 890120504669691
+
+        Clearing Number: 83279
+        Account Number: 503797519
+        Account BBAN: 832790503797519
+
+    Report Type: CAMT052BT
+    Report Version: V02
+    Report Frequency: SNAPSHOT
+    Account Format: IBAN
+    IsActive: True
+    IsPaginated: False
+    IsEmptyReportAllowed: True
+    IsBundled: False
+
+b) Agreement Scope Name - CAMT052B - V02 - SNAPSHOT
+    Payment Type: ALL
+    Account Assignment:
+        Clearing Number: 89012
+        Account Number: 504669601
+        Account BBAN: 890120504669601
+
+        Clearing Number: 83279
+        Account Number: 503797511
+        Account BBAN: 832790503797511
+
+    Report Type: CAMT052B
+    Report Version: V02
+    Report Frequency: SNAPSHOT
+    Account Format: IBAN
+    IsActive: True
+    IsPaginated: False
+    IsEmptyReportAllowed: True
+    IsBundled: True
+

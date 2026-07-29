@@ -106,7 +106,8 @@ VALUES
     ('ALL', N'Default payment type — used for non-CAMT054 and CAMT054_DEBIT callers'),
     ('CREDIT_TRANSFER', 'Credit transfer'),
     ('DIRECT_DEBIT', 'Direct debit'),
-    ('INSTANT_PAYMENT', 'Instant payment');
+    ('INSTANT_PAYMENT', 'Instant payment'),
+    ('ALIAS_PAYMENT', 'Payment addressed via an alias identifier (e.g. mobile number) rather than an account number');
 PRINT '  ✓ ' + CAST(@@ROWCOUNT AS VARCHAR) + ' rows inserted into PaymentType.';
 
     PRINT '✓ All seed data inserted successfully.';

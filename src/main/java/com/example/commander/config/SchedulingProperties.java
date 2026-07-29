@@ -6,7 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -143,7 +142,7 @@ public class SchedulingProperties {
                 .map(String::trim)
                 .filter(s -> !s.isEmpty())
                 .map(s -> LocalTime.parse(s, DateTimeFormatter.ofPattern("HH:mm")))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**

@@ -14,8 +14,8 @@ import com.example.commander.domain.config.AgreementScopeRow;
 import com.example.commander.domain.config.AliasAssignmentRow;
 import com.example.commander.domain.config.PaymentTypeAssignmentRow;
 import com.example.commander.domain.config.ReportConfigRow;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.LongStream;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -74,10 +74,7 @@ class ReportConfigTreeRepositoryImplTest {
 
     @Test
     void findScopesByConfigIdsThrowsWhenExceedingSafeInListSize() {
-        List<Long> tooManyIds = new ArrayList<>();
-        for (long i = 0; i < 2001; i++) {
-            tooManyIds.add(i);
-        }
+        List<Long> tooManyIds = LongStream.range(0, 2001).boxed().toList();
 
         assertThatThrownBy(() -> repository.findScopesByConfigIds(tooManyIds))
                 .isInstanceOf(IllegalStateException.class)
