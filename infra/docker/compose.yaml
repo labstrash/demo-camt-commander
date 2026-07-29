@@ -1,0 +1,94 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: sqlserver
+
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=YourStrong!Passw0rd
+
+    ports:
+      - "1433:1433"
+
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "/opt/mssql-tools18/bin/sqlcmd",
+          "-S", "localhost",
+          "-U", "sa",
+          "-P", "YourStrong!Passw0rd",
+          "-Q", "SELECT 1",
+          "-C"
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  ibmmq:
+    image: ibmcom/mq:latest
+    container_name: ibmmq
+
+    ports:
+      - "1414:1414"
+      - "9443:9443"
+
+    environment:
+      LICENSE: accept
+      MQ_QMGR_NAME: QM1
+      MQ_APP_PASSWORD: passw0rd
+
+    volumes:
+      - ./init-scripts/config.mqsc:/etc/mqm/config.mqsc:ro
+      - ibmmq-data:/mnt/mqm
+
+    healthcheck:
+      test: ["CMD", "dspmq", "-m", "QM1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+    restart: unless-stopped
+
+  sqlserver-init:
+    image: mcr.microsoft.com/mssql-tools
+    container_name: sqlserver-init
+
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+
+    volumes:
+      - ./init-scripts:/init-scripts:ro
+
+    # Run each script in order; -b makes sqlcmd exit non-zero on SQL errors so
+    # the && chain actually stops (and the container reports failure) instead
+    # of silently continuing past a broken step.
+    command: >
+      /bin/bash -c "
+        /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P 'YourStrong!Passw0rd' -b -Q \"IF DB_ID('REPORTDB') IS NULL CREATE DATABASE REPORTDB;\" -C &&
+        /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P 'YourStrong!Passw0rd' -b -i /init-scripts/db/00-drop-all.sql -C &&
+        /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P 'YourStrong!Passw0rd' -b -i /init-scripts/db/01-schema-reference.sql -C &&
+        /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P 'YourStrong!Passw0rd' -b -i /init-scripts/db/02-schema-sequence.sql -C &&
+        /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P 'YourStrong!Passw0rd' -b -i /init-scripts/db/03-schema-agreement.sql -C &&
+        /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P 'YourStrong!Passw0rd' -b -i /init-scripts/db/04-schema-scope.sql -C &&
+        /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P 'YourStrong!Passw0rd' -b -i /init-scripts/db/05-schema-report.sql -C &&
+        /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P 'YourStrong!Passw0rd' -b -i /init-scripts/db/06-schema-audit-deadletter.sql -C &&
+        /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P 'YourStrong!Passw0rd' -b -i /init-scripts/db/07-schema-fetch-config.sql -C &&
+        /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P 'YourStrong!Passw0rd' -b -i /init-scripts/db/08-seed-data.sql -C &&
+        /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P 'YourStrong!Passw0rd' -b -i /init-scripts/db/96-drop-batch.sql -C &&
+        /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P 'YourStrong!Passw0rd' -b -i /init-scripts/db/97-schema-batch.sql -C &&
+        /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P 'YourStrong!Passw0rd' -b -i /init-scripts/db/98-drop-quartz.sql -C &&
+        /opt/mssql-tools/bin/sqlcmd -S sqlserver -U sa -P 'YourStrong!Passw0rd' -b -i /init-scripts/db/99-schema-quartz.sql -C &&
+        echo 'All init scripts completed successfully.'
+      "
+    restart: "no"
+
+volumes:
+  sqlserver-data:
+  ibmmq-data:
