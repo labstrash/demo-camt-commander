@@ -2,7 +2,7 @@ package com.example.commander.adapter.batch.config;
 
 import com.example.commander.adapter.batch.processor.RecipientResolvingReportMessageProcessor;
 import com.example.commander.adapter.batch.reader.ReportPipelineItemReader;
-import com.example.commander.adapter.batch.writer.LoggingReportMessageWriter;
+import com.example.commander.adapter.batch.writer.CompositeReportMessageWriter;
 import com.example.commander.domain.message.ReportMessageEnvelope;
 import java.time.Instant;
 import org.springframework.batch.core.job.Job;
@@ -29,7 +29,7 @@ public class BatchPipelineConfig {
      * Spring Batch 6's JDBC {@code JobRepository} ships {@code String} converters for
      * {@code Date}/{@code LocalDate}/{@code LocalTime}/{@code LocalDateTime}/
      * {@code OffsetDateTime}/{@code ZonedDateTime} but not {@code Instant} — without this,
-     * persisting a typed {@code JobParameter<Instant>} (windowStartUtc/windowEndUtc) throws
+     * persisting a typed {@code JobParameter<Instant>} (startDateTimeUtc/endDateTimeUtc) throws
      * {@code ConverterNotFoundException} the moment a job is launched. ISO-8601 round-trips
      * losslessly through {@link Instant#toString()} / {@link Instant#parse}.
      */
@@ -54,7 +54,7 @@ public class BatchPipelineConfig {
             PlatformTransactionManager transactionManager,
             ReportPipelineItemReader reader,
             RecipientResolvingReportMessageProcessor processor,
-            LoggingReportMessageWriter writer,
+            CompositeReportMessageWriter writer,
             BatchPipelineProperties properties) {
         return new StepBuilder("reportPipelineStep", jobRepository)
                 .<ReportMessageEnvelope, ReportMessageEnvelope>chunk(properties.getCommitInterval())

@@ -1,6 +1,9 @@
 package com.example.commander;
 
 import com.example.commander.adapter.batch.config.BatchPipelineProperties;
+import com.example.commander.adapter.message.MqProperties;
+import com.example.commander.adapter.message.MqResilienceProperties;
+import com.example.commander.audit.AuditRetentionProperties;
 import com.example.commander.config.ReportConfigReadProperties;
 import com.example.commander.config.SchedulingProperties;
 import org.springframework.boot.SpringApplication;
@@ -13,7 +16,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableConfigurationProperties({
     ReportConfigReadProperties.class,
     SchedulingProperties.class,
-    BatchPipelineProperties.class
+    BatchPipelineProperties.class,
+    MqResilienceProperties.class,
+    MqProperties.class,
+    AuditRetentionProperties.class
 })
 public class DemoCamtCommanderApplication {
 

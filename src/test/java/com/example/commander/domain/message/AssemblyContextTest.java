@@ -3,13 +3,16 @@ package com.example.commander.domain.message;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.example.commander.domain.report.ReportWindow;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 
 class AssemblyContextTest {
 
     private static final ReportContext REPORT_CONTEXT = new ReportContext(
-            Instant.parse("2026-07-01T00:00:00Z"), Instant.parse("2026-07-02T00:00:00Z"), "1.0", TriggerType.SCHEDULED);
+            new ReportWindow(Instant.parse("2026-07-01T00:00:00Z"), Instant.parse("2026-07-02T00:00:00Z")),
+            "1.0",
+            TriggerType.SCHEDULED);
     private static final Recipient RECIPIENT = new Recipient(999L, RecipientType.BIC, "SOMEBIC", "Some Recipient");
 
     @Test

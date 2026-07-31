@@ -21,11 +21,11 @@ import java.util.Objects;
 public record ReportWindow(Instant windowStartUtc, Instant windowEndUtc) {
 
     public ReportWindow {
-        Objects.requireNonNull(windowStartUtc, "windowStartUtc");
-        Objects.requireNonNull(windowEndUtc, "windowEndUtc");
+        Objects.requireNonNull(windowStartUtc, "startDateTimeUtc");
+        Objects.requireNonNull(windowEndUtc, "endDateTimeUtc");
         if (windowStartUtc.isAfter(windowEndUtc)) {
-            throw new IllegalArgumentException(
-                    "windowStartUtc (%s) must not be after windowEndUtc (%s)".formatted(windowStartUtc, windowEndUtc));
+            throw new IllegalArgumentException("startDateTimeUtc (%s) must not be after endDateTimeUtc (%s)"
+                    .formatted(windowStartUtc, windowEndUtc));
         }
     }
 

@@ -76,8 +76,8 @@ public class ReportPipelineTrigger {
         JobParameters jobParameters = new JobParametersBuilder()
                 .addString("reportType", reportType)
                 .addString("reportFrequency", frequency.dbCode())
-                .addJobParameter(new JobParameter<>("windowStartUtc", window.windowStartUtc(), Instant.class))
-                .addJobParameter(new JobParameter<>("windowEndUtc", window.windowEndUtc(), Instant.class))
+                .addJobParameter(new JobParameter<>("startDateTimeUtc", window.windowStartUtc(), Instant.class))
+                .addJobParameter(new JobParameter<>("endDateTimeUtc", window.windowEndUtc(), Instant.class))
                 .addJobParameter(new JobParameter<>("triggeredAt", Instant.now(), Instant.class))
                 .toJobParameters();
 

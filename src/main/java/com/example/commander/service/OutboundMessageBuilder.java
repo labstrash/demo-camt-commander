@@ -49,7 +49,11 @@ public class OutboundMessageBuilder {
 
         // Generate IDs
         String correlationId = correlationIdGenerator.generate(
-                config.id(), scopeId, reportContext.windowStartUtc(), reportContext.windowEndUtc(), paymentTypeGroups);
+                config.id(),
+                scopeId,
+                reportContext.window().windowStartUtc(),
+                reportContext.window().windowEndUtc(),
+                paymentTypeGroups);
 
         String messageId = messageIdGenerator.generateMessageId(config.configId(), config.reportType());
         messageIdValidator.validate(messageId, config.configId(), config.reportType());
@@ -59,8 +63,8 @@ public class OutboundMessageBuilder {
                 .configId(config.configId())
                 .reportType(config.reportType())
                 .reportVersion(reportContext.reportVersion())
-                .windowStartUtc(reportContext.windowStartUtc())
-                .windowEndUtc(reportContext.windowEndUtc())
+                .windowStartUtc(reportContext.window().windowStartUtc())
+                .windowEndUtc(reportContext.window().windowEndUtc())
                 .bundled(scopeId == null)
                 .triggerType(reportContext.triggerType())
                 .recipient(context.recipient())

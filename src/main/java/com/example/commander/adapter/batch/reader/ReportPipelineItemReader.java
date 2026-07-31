@@ -9,6 +9,7 @@ import com.example.commander.domain.message.RecipientType;
 import com.example.commander.domain.message.ReportContext;
 import com.example.commander.domain.message.ReportMessageEnvelope;
 import com.example.commander.domain.message.TriggerType;
+import com.example.commander.domain.report.ReportWindow;
 import com.example.commander.repository.ReportConfigTreeRepository;
 import com.example.commander.service.ReportMessageAssembler;
 import java.time.Instant;
@@ -94,8 +95,8 @@ public class ReportPipelineItemReader extends AbstractItemStreamItemReader<Repor
             ReportConfigReadProperties readLayerProperties,
             @Value("#{jobParameters['reportType']}") String reportType,
             @Value("#{jobParameters['reportFrequency']}") String reportFrequency,
-            @Value("#{jobParameters['windowStartUtc']}") Instant windowStartUtc,
-            @Value("#{jobParameters['windowEndUtc']}") Instant windowEndUtc) {
+            @Value("#{jobParameters['startDateTimeUtc']}") Instant windowStartUtc,
+            @Value("#{jobParameters['endDateTimeUtc']}") Instant windowEndUtc) {
         this.repository = repository;
         this.fanOutAssemblyService = reportMessageAssembler;
         this.pageSize = readLayerProperties.getPageSize();
@@ -177,10 +178,10 @@ public class ReportPipelineItemReader extends AbstractItemStreamItemReader<Repor
 
     private AssemblyContext contextFor(ReportConfigTree tree) {
         ReportConfigRow config = tree.config();
-        ReportContext reportContext =
-                new ReportContext(windowStartUtc, windowEndUtc, config.reportVersion(), TriggerType.SCHEDULED);
+        ReportContext reportContext = new ReportContext(
+                new ReportWindow(windowStartUtc, windowEndUtc), config.reportVersion(), TriggerType.SCHEDULED);
         // Placeholder recipient: only `id` (config.messageRecipientId()) is real here. The
-        // type/address/displayName are unresolved at read time and are fully overwritten by
+        // type/value/name are unresolved at read time and are fully overwritten by
         // RecipientResolvingReportMessageProcessor once it looks up the real recipient — never
         // read by anything in between.
         Recipient placeholderRecipient =

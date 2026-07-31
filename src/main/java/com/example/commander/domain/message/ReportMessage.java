@@ -23,12 +23,12 @@ public record ReportMessage(
         int configId,
         String reportType,
         String reportVersion,
-        Instant windowStartUtc,
-        Instant windowEndUtc,
+        Instant startDateTimeUtc,
+        Instant endDateTimeUtc,
         boolean bundled,
         TriggerType triggerType,
         Recipient recipient,
-        List<PaymentTypeAllocation> paymentTypeAllocations,
+        List<PaymentTypeAllocation> paymentTypes,
         String requestorName,
         String correlationId,
         String messageId) {
@@ -36,17 +36,17 @@ public record ReportMessage(
         validateConfigId(configId);
         validateReportType(reportType);
         Objects.requireNonNull(reportVersion, "reportVersion cannot be null");
-        Objects.requireNonNull(windowStartUtc, "windowStartUtc cannot be null");
-        Objects.requireNonNull(windowEndUtc, "windowEndUtc cannot be null");
+        Objects.requireNonNull(startDateTimeUtc, "startDateTimeUtc cannot be null");
+        Objects.requireNonNull(endDateTimeUtc, "endDateTimeUtc cannot be null");
         Objects.requireNonNull(triggerType, "triggerType cannot be null");
         Objects.requireNonNull(recipient, "recipient cannot be null");
         Objects.requireNonNull(correlationId, "correlationId cannot be null");
         Objects.requireNonNull(messageId, "messageId cannot be null");
 
-        paymentTypeAllocations = paymentTypeAllocations == null ? List.of() : List.copyOf(paymentTypeAllocations);
+        paymentTypes = paymentTypes == null ? List.of() : List.copyOf(paymentTypes);
 
-        if (windowStartUtc.isAfter(windowEndUtc)) {
-            throw new IllegalArgumentException("windowStartUtc must be before windowEndUtc");
+        if (startDateTimeUtc.isAfter(endDateTimeUtc)) {
+            throw new IllegalArgumentException("startDateTimeUtc must be before endDateTimeUtc");
         }
     }
 
@@ -68,7 +68,7 @@ public record ReportMessage(
      * @return payment type count
      */
     public int paymentTypeCount() {
-        return paymentTypeAllocations.size();
+        return paymentTypes.size();
     }
 
     /**
@@ -77,7 +77,7 @@ public record ReportMessage(
      * @return account count
      */
     public int totalAccountAssignments() {
-        return paymentTypeAllocations.stream()
+        return paymentTypes.stream()
                 .mapToInt(allocation -> allocation.accounts().size())
                 .sum();
     }
@@ -90,7 +90,7 @@ public record ReportMessage(
      * @return true if there are no payment type allocations
      */
     public boolean hasNoPaymentTypes() {
-        return paymentTypeAllocations.isEmpty();
+        return paymentTypes.isEmpty();
     }
 
     /**
@@ -99,7 +99,7 @@ public record ReportMessage(
      * @return true if there are payment type allocations
      */
     public boolean hasPaymentTypes() {
-        return !paymentTypeAllocations.isEmpty();
+        return !paymentTypes.isEmpty();
     }
 
     public static Builder builder() {
@@ -193,10 +193,10 @@ public record ReportMessage(
                 throw new IllegalStateException("reportVersion is required");
             }
             if (windowStartUtc == null) {
-                throw new IllegalStateException("windowStartUtc is required");
+                throw new IllegalStateException("startDateTimeUtc is required");
             }
             if (windowEndUtc == null) {
-                throw new IllegalStateException("windowEndUtc is required");
+                throw new IllegalStateException("endDateTimeUtc is required");
             }
             if (bundled == null) {
                 throw new IllegalStateException("bundled is required");
@@ -233,12 +233,12 @@ public record ReportMessage(
             this.configId = existing.configId();
             this.reportType = existing.reportType();
             this.reportVersion = existing.reportVersion();
-            this.windowStartUtc = existing.windowStartUtc();
-            this.windowEndUtc = existing.windowEndUtc();
+            this.windowStartUtc = existing.startDateTimeUtc();
+            this.windowEndUtc = existing.endDateTimeUtc();
             this.bundled = existing.bundled();
             this.triggerType = existing.triggerType();
             this.recipient = existing.recipient();
-            this.paymentTypeAllocations = existing.paymentTypeAllocations();
+            this.paymentTypeAllocations = existing.paymentTypes();
             this.requestorName = existing.requestorName();
             this.correlationId = existing.correlationId();
             this.messageId = existing.messageId();

@@ -42,8 +42,7 @@ class RecipientResolvingReportMessageProcessorTest {
         assertThat(result.payload().correlationId()).isEqualTo(item.payload().correlationId());
         assertThat(result.payload().configId()).isEqualTo(item.payload().configId());
         assertThat(result.payload().reportType()).isEqualTo(item.payload().reportType());
-        assertThat(result.payload().paymentTypeAllocations())
-                .isEqualTo(item.payload().paymentTypeAllocations());
+        assertThat(result.payload().paymentTypes()).isEqualTo(item.payload().paymentTypes());
     }
 
     @Test

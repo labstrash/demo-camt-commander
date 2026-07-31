@@ -70,8 +70,8 @@ class ReportPipelineTriggerTest {
 
         assertThat(jobParameters.getString("reportType")).isEqualTo("CAMT054D");
         assertThat(jobParameters.getString("reportFrequency")).isEqualTo("DAILY");
-        assertThat(jobParameters.getParameter("windowStartUtc").value()).isEqualTo(WINDOW_START);
-        assertThat(jobParameters.getParameter("windowEndUtc").value()).isEqualTo(WINDOW_END);
+        assertThat(jobParameters.getParameter("startDateTimeUtc").value()).isEqualTo(WINDOW_START);
+        assertThat(jobParameters.getParameter("endDateTimeUtc").value()).isEqualTo(WINDOW_END);
         assertThat(jobParameters.getParameter("triggeredAt").value()).isInstanceOf(Instant.class);
     }
 

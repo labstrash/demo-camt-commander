@@ -17,6 +17,7 @@ import com.example.commander.domain.message.ReportContext;
 import com.example.commander.domain.message.ReportMessageEnvelope;
 import com.example.commander.domain.message.ReportMessageIdGenerator;
 import com.example.commander.domain.message.TriggerType;
+import com.example.commander.domain.report.ReportWindow;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
@@ -143,16 +144,12 @@ class ReportMessageAssemblerTest {
         assertThat(messages).filteredOn(ReportMessageAssemblerTest::hasAliases).allMatch(m -> m.scopeId() == 102L);
 
         // each unbundled message's single allocation still carries the originating payment type
-        assertThat(messages).filteredOn(ReportMessageAssemblerTest::hasAccounts).allMatch(m -> m.payload()
-                .paymentTypeAllocations()
-                .get(0)
-                .paymentType()
-                .equals("SWISH"));
-        assertThat(messages).filteredOn(ReportMessageAssemblerTest::hasAliases).allMatch(m -> m.payload()
-                .paymentTypeAllocations()
-                .get(0)
-                .paymentType()
-                .equals("BG"));
+        assertThat(messages)
+                .filteredOn(ReportMessageAssemblerTest::hasAccounts)
+                .allMatch(m -> m.payload().paymentTypes().get(0).paymentType().equals("SWISH"));
+        assertThat(messages)
+                .filteredOn(ReportMessageAssemblerTest::hasAliases)
+                .allMatch(m -> m.payload().paymentTypes().get(0).paymentType().equals("BG"));
 
         // same-scope collision fix: two unbundled messages from scope 101 (different accounts)
         // must not derive the same correlationId
@@ -234,26 +231,25 @@ class ReportMessageAssemblerTest {
     }
 
     private static PaymentTypeAllocation allocationFor(ReportMessageEnvelope message, String paymentType) {
-        return message.payload().paymentTypeAllocations().stream()
+        return message.payload().paymentTypes().stream()
                 .filter(allocation -> allocation.paymentType().equals(paymentType))
                 .findFirst()
                 .orElseThrow(() -> new AssertionError("no allocation for payment type " + paymentType));
     }
 
     private static boolean hasAccounts(ReportMessageEnvelope message) {
-        return message.payload().paymentTypeAllocations().stream()
+        return message.payload().paymentTypes().stream()
                 .anyMatch(allocation -> !allocation.accounts().isEmpty());
     }
 
     private static boolean hasAliases(ReportMessageEnvelope message) {
-        return message.payload().paymentTypeAllocations().stream()
+        return message.payload().paymentTypes().stream()
                 .anyMatch(allocation -> !allocation.aliases().isEmpty());
     }
 
     private static AssemblyContext context() {
         ReportContext reportContext = new ReportContext(
-                Instant.parse("2026-07-01T00:00:00Z"),
-                Instant.parse("2026-07-02T00:00:00Z"),
+                new ReportWindow(Instant.parse("2026-07-01T00:00:00Z"), Instant.parse("2026-07-02T00:00:00Z")),
                 "1.0",
                 TriggerType.SCHEDULED);
         Recipient recipient = new Recipient(999L, RecipientType.BIC, "SOMEBIC", "Some Recipient");

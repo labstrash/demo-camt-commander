@@ -13,8 +13,8 @@ class RecipientTest {
 
         assertThat(recipient.id()).isEqualTo(1L);
         assertThat(recipient.type()).isEqualTo(RecipientType.ORIGINATOR);
-        assertThat(recipient.address()).isEqualTo("3937231530REP0001");
-        assertThat(recipient.displayName()).isEqualTo("Team Nirvana A");
+        assertThat(recipient.value()).isEqualTo("3937231530REP0001");
+        assertThat(recipient.name()).isEqualTo("Team Nirvana A");
     }
 
     @Test
@@ -35,7 +35,7 @@ class RecipientTest {
     void rejectsBlankAddress() {
         assertThatThrownBy(() -> new Recipient(1L, RecipientType.BIC, "  ", "name"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("address");
+                .hasMessageContaining("value");
     }
 
     @Test

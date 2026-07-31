@@ -35,3 +35,6 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### IBM MQ client runtime log ###
+mqjms.log.*
