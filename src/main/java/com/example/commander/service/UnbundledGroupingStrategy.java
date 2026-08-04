@@ -1,8 +1,11 @@
 package com.example.commander.service;
 
 import com.example.commander.domain.config.ReportConfigTree;
+import com.example.commander.domain.message.AccountBalance;
+import com.example.commander.domain.message.AccountKey;
 import com.example.commander.domain.message.ScopedAllocation;
 import java.util.List;
+import java.util.Map;
 import org.springframework.stereotype.Component;
 
 /**
@@ -17,7 +20,7 @@ public class UnbundledGroupingStrategy implements MessageGroupingStrategy {
     }
 
     @Override
-    public List<ScopedAllocation> group(ReportConfigTree tree) {
-        return grouper.groupByRow(tree.scopes());
+    public List<ScopedAllocation> group(ReportConfigTree tree, Map<AccountKey, AccountBalance> accountBalances) {
+        return grouper.groupByRow(tree.scopes(), accountBalances);
     }
 }

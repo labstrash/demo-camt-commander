@@ -10,6 +10,15 @@ DEFINE QLOCAL('CAMT.054D.QUEUE') REPLACE
 * Inbound queues
 DEFINE QLOCAL('CAMT.ONDEMAND.QUEUE') REPLACE
 DEFINE QLOCAL('CAMT.ONBOARDING.QUEUE') REPLACE
+DEFINE QLOCAL('CAMT.PHT.QUEUE') REPLACE
+
+* Backout queues — a message that fails processing BOTHRESH times (session is transacted;
+* see InboundMqListenerConfig) is moved here by MQ instead of being redelivered forever.
+DEFINE QLOCAL('CAMT.ONDEMAND.BACKOUT.QUEUE') REPLACE
+DEFINE QLOCAL('CAMT.PHT.BACKOUT.QUEUE') REPLACE
+
+ALTER QLOCAL('CAMT.ONDEMAND.QUEUE') BOTHRESH(3) BOQNAME('CAMT.ONDEMAND.BACKOUT.QUEUE')
+ALTER QLOCAL('CAMT.PHT.QUEUE') BOTHRESH(3) BOQNAME('CAMT.PHT.BACKOUT.QUEUE')
 
 * Grant 'app' user authority on all CAMT queues.
 * The IBM MQ Docker image pre-authorises 'app' only on DEV.* queues.

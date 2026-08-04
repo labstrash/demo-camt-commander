@@ -9,6 +9,8 @@ import com.example.commander.domain.config.AliasAssignmentRow;
 import com.example.commander.domain.config.PaymentTypeAssignmentNode;
 import com.example.commander.domain.config.ReportConfigRow;
 import com.example.commander.domain.config.ReportConfigTree;
+import com.example.commander.domain.message.AccountBalance;
+import com.example.commander.domain.message.AccountKey;
 import com.example.commander.domain.message.AssemblyContext;
 import com.example.commander.domain.message.PaymentTypeAllocation;
 import com.example.commander.domain.message.Recipient;
@@ -20,6 +22,7 @@ import com.example.commander.domain.message.TriggerType;
 import com.example.commander.domain.report.ReportWindow;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
@@ -161,6 +164,45 @@ class ReportMessageAssemblerTest {
     }
 
     @Test
+    void bundledWithAccountBalancesAttachesBalanceToTheMatchedAccount() {
+        // Real-collaborator coverage for the PHT balance use case's threading of
+        // AssemblyContext.accountBalances() through the whole reused pipeline (strategy ->
+        // PaymentTypeGrouper -> AllocationMapper), not just PaymentTypeGrouperTest's
+        // grouper-level unit coverage.
+        PaymentTypeAssignmentNode assignment =
+                new PaymentTypeAssignmentNode(1L, 101L, "SWISH", List.of(account(1L, 1L)), List.of());
+        ReportConfigTree tree = new ReportConfigTree(
+                config(true), List.of(new AgreementScopeNode(101L, 1L, "Scope A", List.of(assignment))));
+        Map<AccountKey, AccountBalance> balances =
+                Map.of(new AccountKey("1234", "56789011"), new AccountBalance("4521,94", "4521,94"));
+
+        List<ReportMessageEnvelope> messages = service.assemble(tree, contextWithBalances(balances));
+
+        assertThat(messages).hasSize(1);
+        assertThat(allocationFor(messages.get(0), "SWISH").accounts().get(0).balance())
+                .isEqualTo("4521,94");
+    }
+
+    @Test
+    void unbundledWithAccountBalancesFansOutOnlyForMatchedAccounts() {
+        PaymentTypeAssignmentNode assignment =
+                new PaymentTypeAssignmentNode(1L, 101L, "SWISH", List.of(account(1L, 1L), account(2L, 1L)), List.of());
+        ReportConfigTree tree = new ReportConfigTree(
+                config(false), List.of(new AgreementScopeNode(101L, 1L, "Scope A", List.of(assignment))));
+        // Only account(1L, 1L) — clearingNumber "1234", accountNumber "56789011" — has a balance.
+        Map<AccountKey, AccountBalance> balances =
+                Map.of(new AccountKey("1234", "56789011"), new AccountBalance("100,00", "100,00"));
+
+        List<ReportMessageEnvelope> messages = service.assemble(tree, contextWithBalances(balances));
+
+        // account(2L, 1L) has no matching balance, so it produces no message at all — not a
+        // message with a null balance.
+        assertThat(messages).hasSize(1);
+        assertThat(allocationFor(messages.get(0), "SWISH").accounts().get(0).balance())
+                .isEqualTo("100,00");
+    }
+
+    @Test
     void danglingAssignmentWithNeitherAccountsNorAliasesIsSkippedNotCounted() {
         PaymentTypeAssignmentNode danglingAssignment = new PaymentTypeAssignmentNode(1L, 101L, "SWISH", null, null);
 
@@ -254,5 +296,14 @@ class ReportMessageAssemblerTest {
                 TriggerType.SCHEDULED);
         Recipient recipient = new Recipient(999L, RecipientType.BIC, "SOMEBIC", "Some Recipient");
         return new AssemblyContext(reportContext, recipient, null);
+    }
+
+    private static AssemblyContext contextWithBalances(Map<AccountKey, AccountBalance> balances) {
+        ReportContext reportContext = new ReportContext(
+                new ReportWindow(Instant.parse("2026-07-01T00:00:00Z"), Instant.parse("2026-07-02T00:00:00Z")),
+                "1.0",
+                TriggerType.EXTERNAL);
+        Recipient recipient = new Recipient(999L, RecipientType.BIC, "SOMEBIC", "Some Recipient");
+        return new AssemblyContext(reportContext, recipient, null, balances);
     }
 }

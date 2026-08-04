@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.example.commander.domain.report.ReportWindow;
 import java.time.Instant;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class AssemblyContextTest {
@@ -40,5 +41,29 @@ class AssemblyContextTest {
     void rejectsNullRecipient() {
         assertThatThrownBy(() -> new AssemblyContext(REPORT_CONTEXT, null, null))
                 .isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    void threeArgConstructorDefaultsAccountBalancesToEmpty() {
+        AssemblyContext context = new AssemblyContext(REPORT_CONTEXT, RECIPIENT, null);
+
+        assertThat(context.accountBalances()).isEmpty();
+    }
+
+    @Test
+    void fourArgConstructorStoresAccountBalances() {
+        Map<AccountKey, AccountBalance> balances =
+                Map.of(new AccountKey("81231", "1234564917"), new AccountBalance("4521,94", "4521,94"));
+
+        AssemblyContext context = new AssemblyContext(REPORT_CONTEXT, RECIPIENT, null, balances);
+
+        assertThat(context.accountBalances()).isEqualTo(balances);
+    }
+
+    @Test
+    void nullAccountBalancesNormalizeToAnEmptyMapRatherThanNull() {
+        AssemblyContext context = new AssemblyContext(REPORT_CONTEXT, RECIPIENT, null, null);
+
+        assertThat(context.accountBalances()).isNotNull().isEmpty();
     }
 }

@@ -67,7 +67,7 @@ public class ReportMessageAssembler {
 
     private List<ReportMessageEnvelope> createMessages(ReportConfigTree tree, AssemblyContext context) {
         MessageGroupingStrategy strategy = strategyFactory.forConfig(tree.config());
-        List<ScopedAllocation> groups = strategy.group(tree);
+        List<ScopedAllocation> groups = strategy.group(tree, context.accountBalances());
 
         if (tree.config().isBundled()) {
             log.debug("Creating bundled message with {} payment types", groups.size());

@@ -3,23 +3,29 @@ package com.example.commander;
 import com.example.commander.adapter.batch.config.BatchPipelineProperties;
 import com.example.commander.adapter.message.MqProperties;
 import com.example.commander.adapter.message.MqResilienceProperties;
+import com.example.commander.adapter.message.ondemand.OnDemandProperties;
+import com.example.commander.adapter.message.pht.PhtProperties;
 import com.example.commander.audit.AuditRetentionProperties;
 import com.example.commander.config.ReportConfigReadProperties;
 import com.example.commander.config.SchedulingProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.jms.annotation.EnableJms;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableScheduling
+@EnableJms
 @EnableConfigurationProperties({
     ReportConfigReadProperties.class,
     SchedulingProperties.class,
     BatchPipelineProperties.class,
     MqResilienceProperties.class,
     MqProperties.class,
-    AuditRetentionProperties.class
+    AuditRetentionProperties.class,
+    OnDemandProperties.class,
+    PhtProperties.class
 })
 public class DemoCamtCommanderApplication {
 

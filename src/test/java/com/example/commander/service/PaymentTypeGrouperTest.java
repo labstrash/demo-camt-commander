@@ -6,8 +6,11 @@ import com.example.commander.domain.config.AccountAssignmentRow;
 import com.example.commander.domain.config.AgreementScopeNode;
 import com.example.commander.domain.config.AliasAssignmentRow;
 import com.example.commander.domain.config.PaymentTypeAssignmentNode;
+import com.example.commander.domain.message.AccountBalance;
+import com.example.commander.domain.message.AccountKey;
 import com.example.commander.domain.message.ScopedAllocation;
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class PaymentTypeGrouperTest {
@@ -21,9 +24,11 @@ class PaymentTypeGrouperTest {
         PaymentTypeAssignmentNode scope2Assignment =
                 new PaymentTypeAssignmentNode(2L, 102L, "SWISH", List.of(account(2L)), List.of());
 
-        List<ScopedAllocation> groups = grouper.groupByPaymentType(List.of(
-                new AgreementScopeNode(101L, 1L, "Scope A", List.of(scope1Assignment)),
-                new AgreementScopeNode(102L, 1L, "Scope B", List.of(scope2Assignment))));
+        List<ScopedAllocation> groups = grouper.groupByPaymentType(
+                List.of(
+                        new AgreementScopeNode(101L, 1L, "Scope A", List.of(scope1Assignment)),
+                        new AgreementScopeNode(102L, 1L, "Scope B", List.of(scope2Assignment))),
+                Map.of());
 
         assertThat(groups).hasSize(1);
         ScopedAllocation group = groups.get(0);
@@ -38,8 +43,8 @@ class PaymentTypeGrouperTest {
                 new PaymentTypeAssignmentNode(1L, 101L, "SWISH", List.of(account(1L)), List.of());
         PaymentTypeAssignmentNode bg = new PaymentTypeAssignmentNode(2L, 101L, "BG", List.of(), List.of(alias(2L)));
 
-        List<ScopedAllocation> groups =
-                grouper.groupByPaymentType(List.of(new AgreementScopeNode(101L, 1L, "Scope A", List.of(swish, bg))));
+        List<ScopedAllocation> groups = grouper.groupByPaymentType(
+                List.of(new AgreementScopeNode(101L, 1L, "Scope A", List.of(swish, bg))), Map.of());
 
         assertThat(groups).hasSize(2);
         assertThat(groups).extracting(g -> g.allocation().paymentType()).containsExactlyInAnyOrder("SWISH", "BG");
@@ -53,8 +58,8 @@ class PaymentTypeGrouperTest {
         // assignment had anything to contribute.
         PaymentTypeAssignmentNode dangling = new PaymentTypeAssignmentNode(1L, 101L, "SWISH", null, null);
 
-        List<ScopedAllocation> groups =
-                grouper.groupByPaymentType(List.of(new AgreementScopeNode(101L, 1L, "Scope A", List.of(dangling))));
+        List<ScopedAllocation> groups = grouper.groupByPaymentType(
+                List.of(new AgreementScopeNode(101L, 1L, "Scope A", List.of(dangling))), Map.of());
 
         assertThat(groups).isEmpty();
     }
@@ -65,12 +70,53 @@ class PaymentTypeGrouperTest {
                 new PaymentTypeAssignmentNode(1L, 101L, "SWISH", List.of(account(1L)), List.of());
         PaymentTypeAssignmentNode dangling = new PaymentTypeAssignmentNode(2L, 102L, "SWISH", null, null);
 
-        List<ScopedAllocation> groups = grouper.groupByPaymentType(List.of(
-                new AgreementScopeNode(101L, 1L, "Scope A", List.of(real)),
-                new AgreementScopeNode(102L, 1L, "Scope B", List.of(dangling))));
+        List<ScopedAllocation> groups = grouper.groupByPaymentType(
+                List.of(
+                        new AgreementScopeNode(101L, 1L, "Scope A", List.of(real)),
+                        new AgreementScopeNode(102L, 1L, "Scope B", List.of(dangling))),
+                Map.of());
 
         assertThat(groups).hasSize(1);
         assertThat(groups.get(0).allocation().accounts()).hasSize(1);
+    }
+
+    @Test
+    void groupByPaymentTypeWithNoAccountBalancesLeavesBalanceFieldsNull() {
+        PaymentTypeAssignmentNode assignment =
+                new PaymentTypeAssignmentNode(1L, 101L, "SWISH", List.of(account(1L)), List.of());
+
+        List<ScopedAllocation> groups = grouper.groupByPaymentType(
+                List.of(new AgreementScopeNode(101L, 1L, "Scope A", List.of(assignment))), Map.of());
+
+        assertThat(groups.get(0).allocation().accounts().get(0).balance()).isNull();
+    }
+
+    @Test
+    void groupByPaymentTypeWithAccountBalancesAttachesMatchedAndOmitsUnmatched() {
+        PaymentTypeAssignmentNode assignment =
+                new PaymentTypeAssignmentNode(1L, 101L, "SWISH", List.of(account(1L), account(2L)), List.of());
+        Map<AccountKey, AccountBalance> balances =
+                Map.of(new AccountKey("1234", "56789011"), new AccountBalance("100,00", "100,00"));
+
+        List<ScopedAllocation> groups = grouper.groupByPaymentType(
+                List.of(new AgreementScopeNode(101L, 1L, "Scope A", List.of(assignment))), balances);
+
+        assertThat(groups).hasSize(1);
+        assertThat(groups.get(0).allocation().accounts()).hasSize(1);
+        assertThat(groups.get(0).allocation().accounts().get(0).balance()).isEqualTo("100,00");
+    }
+
+    @Test
+    void groupByPaymentTypeProducesNoGroupWhenAccountBalancesMatchesNothing() {
+        PaymentTypeAssignmentNode assignment =
+                new PaymentTypeAssignmentNode(1L, 101L, "SWISH", List.of(account(1L)), List.of());
+        Map<AccountKey, AccountBalance> balances =
+                Map.of(new AccountKey("nope", "nope"), new AccountBalance("100,00", "100,00"));
+
+        List<ScopedAllocation> groups = grouper.groupByPaymentType(
+                List.of(new AgreementScopeNode(101L, 1L, "Scope A", List.of(assignment))), balances);
+
+        assertThat(groups).isEmpty();
     }
 
     @Test
@@ -79,7 +125,7 @@ class PaymentTypeGrouperTest {
                 new PaymentTypeAssignmentNode(1L, 101L, "SWISH", List.of(account(1L), account(2L)), List.of());
 
         List<ScopedAllocation> groups =
-                grouper.groupByRow(List.of(new AgreementScopeNode(101L, 1L, "Scope A", List.of(assignment))));
+                grouper.groupByRow(List.of(new AgreementScopeNode(101L, 1L, "Scope A", List.of(assignment))), Map.of());
 
         assertThat(groups).hasSize(2);
         assertThat(groups).allMatch(g -> g.scopeId() == 101L);
@@ -93,9 +139,11 @@ class PaymentTypeGrouperTest {
         PaymentTypeAssignmentNode scope2Assignment =
                 new PaymentTypeAssignmentNode(2L, 102L, "BG", List.of(), List.of(alias(2L)));
 
-        List<ScopedAllocation> groups = grouper.groupByRow(List.of(
-                new AgreementScopeNode(101L, 1L, "Scope A", List.of(scope1Assignment)),
-                new AgreementScopeNode(102L, 1L, "Scope B", List.of(scope2Assignment))));
+        List<ScopedAllocation> groups = grouper.groupByRow(
+                List.of(
+                        new AgreementScopeNode(101L, 1L, "Scope A", List.of(scope1Assignment)),
+                        new AgreementScopeNode(102L, 1L, "Scope B", List.of(scope2Assignment))),
+                Map.of());
 
         assertThat(groups).hasSize(2);
         assertThat(groups).extracting(ScopedAllocation::scopeId).containsExactlyInAnyOrder(101L, 102L);
@@ -106,9 +154,23 @@ class PaymentTypeGrouperTest {
         PaymentTypeAssignmentNode dangling = new PaymentTypeAssignmentNode(1L, 101L, "SWISH", null, null);
 
         List<ScopedAllocation> groups =
-                grouper.groupByRow(List.of(new AgreementScopeNode(101L, 1L, "Scope A", List.of(dangling))));
+                grouper.groupByRow(List.of(new AgreementScopeNode(101L, 1L, "Scope A", List.of(dangling))), Map.of());
 
         assertThat(groups).isEmpty();
+    }
+
+    @Test
+    void groupByRowWithAccountBalancesOmitsRowsWithNoMatch() {
+        PaymentTypeAssignmentNode assignment =
+                new PaymentTypeAssignmentNode(1L, 101L, "SWISH", List.of(account(1L), account(2L)), List.of());
+        Map<AccountKey, AccountBalance> balances =
+                Map.of(new AccountKey("1234", "56789011"), new AccountBalance("100,00", "100,00"));
+
+        List<ScopedAllocation> groups =
+                grouper.groupByRow(List.of(new AgreementScopeNode(101L, 1L, "Scope A", List.of(assignment))), balances);
+
+        assertThat(groups).hasSize(1);
+        assertThat(groups.get(0).allocation().accounts().get(0).balance()).isEqualTo("100,00");
     }
 
     private static AccountAssignmentRow account(long id) {

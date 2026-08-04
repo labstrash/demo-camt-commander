@@ -5,6 +5,8 @@ import com.example.commander.domain.config.AgreementScopeNode;
 import com.example.commander.domain.config.AliasAssignmentRow;
 import com.example.commander.domain.config.PaymentTypeAssignmentNode;
 import com.example.commander.domain.message.AccountAllocation;
+import com.example.commander.domain.message.AccountBalance;
+import com.example.commander.domain.message.AccountKey;
 import com.example.commander.domain.message.AliasAllocation;
 import com.example.commander.domain.message.PaymentTypeAllocation;
 import com.example.commander.domain.message.ScopedAllocation;
@@ -31,9 +33,14 @@ public class PaymentTypeGrouper {
      * owning scope.
      *
      * @param scopes the agreement scopes to group
+     * @param accountBalances externally supplied balances, keyed by account — empty for every
+     *     path except the PHT balance use case; when non-empty, an account with no entry is
+     *     omitted rather than included with a null balance (see {@link
+     *     com.example.commander.domain.message.AssemblyContext#accountBalances()})
      * @return list of scoped payment type groups, one per distinct payment type
      */
-    public List<ScopedAllocation> groupByPaymentType(List<AgreementScopeNode> scopes) {
+    public List<ScopedAllocation> groupByPaymentType(
+            List<AgreementScopeNode> scopes, Map<AccountKey, AccountBalance> accountBalances) {
         Map<String, PaymentTypeGroupBuilder> buildersByType = new LinkedHashMap<>();
 
         for (AgreementScopeNode scope : scopes) {
@@ -43,12 +50,17 @@ public class PaymentTypeGrouper {
                 if (assignment.isAccountAssignment() || assignment.isAliasAssignment()) {
                     buildersByType
                             .computeIfAbsent(assignment.paymentType(), PaymentTypeGroupBuilder::new)
-                            .add(assignment);
+                            .add(assignment, accountBalances);
                 }
             }
         }
 
+        // A builder can end up empty when every one of its account rows was filtered out for
+        // having no matching entry in a non-empty accountBalances — never possible before that
+        // filtering existed, since every builder here was created for an assignment that itself
+        // had accounts or aliases.
         return buildersByType.values().stream()
+                .filter(PaymentTypeGroupBuilder::hasContent)
                 .map(builder -> new ScopedAllocation(null, builder.build()))
                 .toList();
     }
@@ -59,18 +71,26 @@ public class PaymentTypeGrouper {
      * per row.
      *
      * @param scopes the agreement scopes to group
+     * @param accountBalances externally supplied balances, keyed by account — empty for every
+     *     path except the PHT balance use case; when non-empty, an account row with no entry
+     *     produces no group at all rather than one carrying a null balance (see {@link
+     *     com.example.commander.domain.message.AssemblyContext#accountBalances()})
      * @return list of scoped payment type groups, one per account/alias row
      */
-    public List<ScopedAllocation> groupByRow(List<AgreementScopeNode> scopes) {
+    public List<ScopedAllocation> groupByRow(
+            List<AgreementScopeNode> scopes, Map<AccountKey, AccountBalance> accountBalances) {
         List<ScopedAllocation> groups = new ArrayList<>();
 
         for (AgreementScopeNode scope : scopes) {
             for (PaymentTypeAssignmentNode assignment : scope.paymentTypeAssignments()) {
                 for (AccountAssignmentRow account : assignment.accounts()) {
-                    PaymentTypeAllocation allocation = new PaymentTypeAllocation(
-                            assignment.paymentType(),
-                            allocationMapper.toAccountAllocations(List.of(account)),
-                            List.of());
+                    List<AccountAllocation> mapped =
+                            allocationMapper.toAccountAllocations(List.of(account), accountBalances);
+                    if (mapped.isEmpty()) {
+                        continue;
+                    }
+                    PaymentTypeAllocation allocation =
+                            new PaymentTypeAllocation(assignment.paymentType(), mapped, List.of());
                     groups.add(new ScopedAllocation(scope.id(), allocation));
                 }
                 for (AliasAssignmentRow alias : assignment.aliases()) {
@@ -93,12 +113,16 @@ public class PaymentTypeGrouper {
             this.paymentType = paymentType;
         }
 
-        void add(PaymentTypeAssignmentNode assignment) {
+        void add(PaymentTypeAssignmentNode assignment, Map<AccountKey, AccountBalance> accountBalances) {
             if (assignment.isAccountAssignment()) {
-                accounts.addAll(allocationMapper.toAccountAllocations(assignment.accounts()));
+                accounts.addAll(allocationMapper.toAccountAllocations(assignment.accounts(), accountBalances));
             } else {
                 aliases.addAll(allocationMapper.toAliasAllocations(assignment.aliases()));
             }
+        }
+
+        boolean hasContent() {
+            return !accounts.isEmpty() || !aliases.isEmpty();
         }
 
         PaymentTypeAllocation build() {
