@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.commander.domain.deadletter.DeadLetterMessage;
+import com.example.commander.domain.message.ReportType;
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -55,7 +56,7 @@ class DeadLetterMessageRepositoryImplTest {
         Instant nextRetryAt = Instant.parse("2026-07-16T00:00:00Z");
 
         repository.insert(
-                new DeadLetterMessage("MSG-1", 1L, null, "CAMT054C", "{}", "CAMT.054C.QUEUE", 5, nextRetryAt));
+                new DeadLetterMessage("MSG-1", 1L, null, ReportType.CAMT054C, "{}", "CAMT.054C.QUEUE", 5, nextRetryAt));
 
         PreparedStatementSetter setter = capturedSetter();
         setter.setValues(preparedStatement);
@@ -75,7 +76,7 @@ class DeadLetterMessageRepositoryImplTest {
         Instant nextRetryAt = Instant.parse("2026-07-16T00:00:00Z");
 
         repository.insert(
-                new DeadLetterMessage("MSG-1", 1L, 101L, "CAMT054C", "{}", "CAMT.054C.QUEUE", 5, nextRetryAt));
+                new DeadLetterMessage("MSG-1", 1L, 101L, ReportType.CAMT054C, "{}", "CAMT.054C.QUEUE", 5, nextRetryAt));
 
         PreparedStatementSetter setter = capturedSetter();
         setter.setValues(preparedStatement);
@@ -90,7 +91,7 @@ class DeadLetterMessageRepositoryImplTest {
                 "MSG-1",
                 1L,
                 null,
-                "CAMT054C",
+                ReportType.CAMT054C,
                 "{}",
                 "CAMT.054C.QUEUE",
                 0,

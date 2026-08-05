@@ -10,6 +10,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.example.commander.domain.message.ReportType;
 import com.example.commander.domain.report.ReportFrequency;
 import com.example.commander.domain.report.ReportWindow;
 import com.example.commander.domain.report.ReportingPeriodCalculator;
@@ -56,11 +57,11 @@ class ReportPipelineTriggerTest {
     @Test
     void triggerWithExplicitReferenceInstantDerivesWindowAndLaunchesJobWithExpectedParameters() throws Exception {
         Instant referenceInstant = Instant.parse("2026-07-28T10:00:00Z");
-        when(periodCalculator.calculateForReference(ReportFrequency.DAILY, referenceInstant, "CAMT054D"))
+        when(periodCalculator.calculateForReference(ReportFrequency.DAILY, referenceInstant, ReportType.CAMT054D))
                 .thenReturn(new ReportWindow(WINDOW_START, WINDOW_END));
         when(jobOperator.start(eq(reportPipelineJob), any(JobParameters.class))).thenReturn(jobExecution);
 
-        JobExecution result = trigger.trigger("CAMT054D", ReportFrequency.DAILY, referenceInstant);
+        JobExecution result = trigger.trigger(ReportType.CAMT054D, ReportFrequency.DAILY, referenceInstant);
 
         assertThat(result).isSameAs(jobExecution);
 
@@ -78,16 +79,18 @@ class ReportPipelineTriggerTest {
     @Test
     void triggerWithoutReferenceInstantDerivesWindowFromApproximatelyNow() throws Exception {
         when(periodCalculator.calculateForReference(
-                        eq(ReportFrequency.FOUR_TIMES_PER_DAY), any(Instant.class), eq("CAMT054C")))
+                        eq(ReportFrequency.FOUR_TIMES_PER_DAY), any(Instant.class), eq(ReportType.CAMT054C)))
                 .thenReturn(new ReportWindow(WINDOW_START, WINDOW_END));
         when(jobOperator.start(eq(reportPipelineJob), any(JobParameters.class))).thenReturn(jobExecution);
 
-        trigger.trigger("CAMT054C", ReportFrequency.FOUR_TIMES_PER_DAY);
+        trigger.trigger(ReportType.CAMT054C, ReportFrequency.FOUR_TIMES_PER_DAY);
 
         ArgumentCaptor<Instant> referenceInstantCaptor = ArgumentCaptor.forClass(Instant.class);
         verify(periodCalculator)
                 .calculateForReference(
-                        eq(ReportFrequency.FOUR_TIMES_PER_DAY), referenceInstantCaptor.capture(), eq("CAMT054C"));
+                        eq(ReportFrequency.FOUR_TIMES_PER_DAY),
+                        referenceInstantCaptor.capture(),
+                        eq(ReportType.CAMT054C));
 
         assertThat(Duration.between(referenceInstantCaptor.getValue(), Instant.now())
                         .abs())
@@ -101,7 +104,7 @@ class ReportPipelineTriggerTest {
         when(jobOperator.start(eq(reportPipelineJob), any(JobParameters.class)))
                 .thenThrow(new JobExecutionAlreadyRunningException("already running"));
 
-        assertThatThrownBy(() -> trigger.trigger("CAMT054D", ReportFrequency.DAILY, Instant.now()))
+        assertThatThrownBy(() -> trigger.trigger(ReportType.CAMT054D, ReportFrequency.DAILY, Instant.now()))
                 .isInstanceOf(JobExecutionAlreadyRunningException.class)
                 .hasMessageContaining("already running");
     }
@@ -109,7 +112,7 @@ class ReportPipelineTriggerTest {
     @Test
     void successiveTriggersForTheSameWindowGetDistinctTriggeredAtValues() throws Exception {
         Instant referenceInstant = Instant.parse("2026-07-28T10:00:00Z");
-        when(periodCalculator.calculateForReference(ReportFrequency.DAILY, referenceInstant, "CAMT054D"))
+        when(periodCalculator.calculateForReference(ReportFrequency.DAILY, referenceInstant, ReportType.CAMT054D))
                 .thenReturn(new ReportWindow(WINDOW_START, WINDOW_END));
         when(jobOperator.start(eq(reportPipelineJob), any(JobParameters.class))).thenReturn(jobExecution);
 
@@ -122,8 +125,8 @@ class ReportPipelineTriggerTest {
         try (MockedStatic<Instant> instantMock = mockStatic(Instant.class, CALLS_REAL_METHODS)) {
             instantMock.when(Instant::now).thenReturn(firstNow, secondNow);
 
-            trigger.trigger("CAMT054D", ReportFrequency.DAILY, referenceInstant);
-            trigger.trigger("CAMT054D", ReportFrequency.DAILY, referenceInstant);
+            trigger.trigger(ReportType.CAMT054D, ReportFrequency.DAILY, referenceInstant);
+            trigger.trigger(ReportType.CAMT054D, ReportFrequency.DAILY, referenceInstant);
         }
 
         ArgumentCaptor<JobParameters> captor = ArgumentCaptor.forClass(JobParameters.class);

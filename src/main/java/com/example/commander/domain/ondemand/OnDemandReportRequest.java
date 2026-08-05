@@ -1,5 +1,6 @@
 package com.example.commander.domain.ondemand;
 
+import com.example.commander.domain.message.ReportType;
 import java.time.Instant;
 import java.util.Objects;
 
@@ -23,7 +24,7 @@ import java.util.Objects;
 public record OnDemandReportRequest(
         String recipientType,
         String recipientValue,
-        String reportType,
+        ReportType reportType,
         String reportVersion,
         Instant windowStartUtc,
         Instant windowEndUtc,

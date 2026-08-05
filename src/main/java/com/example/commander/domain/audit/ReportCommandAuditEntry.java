@@ -1,5 +1,6 @@
 package com.example.commander.domain.audit;
 
+import com.example.commander.domain.message.ReportType;
 import com.example.commander.domain.message.TriggerType;
 import java.time.Instant;
 import java.util.Objects;
@@ -23,7 +24,7 @@ public record ReportCommandAuditEntry(
         Long reportConfigId,
         String configId,
         Long agreementScopeId,
-        String reportType,
+        ReportType reportType,
         String reportVersion,
         String reportFrequency,
         TriggerType triggerType,
@@ -70,7 +71,7 @@ public record ReportCommandAuditEntry(
         private Long reportConfigId;
         private String configId;
         private Long agreementScopeId;
-        private String reportType;
+        private ReportType reportType;
         private String reportVersion;
         private String reportFrequency;
         private TriggerType triggerType;
@@ -118,7 +119,7 @@ public record ReportCommandAuditEntry(
             return this;
         }
 
-        public Builder reportType(String reportType) {
+        public Builder reportType(ReportType reportType) {
             this.reportType = reportType;
             return this;
         }

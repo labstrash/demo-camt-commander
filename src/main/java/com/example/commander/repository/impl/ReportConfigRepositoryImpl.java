@@ -2,6 +2,7 @@ package com.example.commander.repository.impl;
 
 import com.example.commander.domain.config.RecipientRow;
 import com.example.commander.domain.config.ReportConfigRow;
+import com.example.commander.domain.message.ReportType;
 import com.example.commander.repository.ReportConfigRepository;
 import java.util.List;
 import java.util.Optional;
@@ -55,14 +56,15 @@ public class ReportConfigRepositoryImpl implements ReportConfigRepository {
     }
 
     @Override
-    public Optional<ReportConfigRow> findActiveByRecipientAndReportType(long messageRecipientId, String reportType) {
+    public Optional<ReportConfigRow> findActiveByRecipientAndReportType(
+            long messageRecipientId, ReportType reportType) {
         // Matches UX_ReportConfig_RecipientReportType — a unique constraint that guarantees
         // at most one row, which is what makes singleRow() below safe to call here.
         List<ReportConfigRow> rows = jdbcTemplate.query(
                 FIND_CONFIG_BY_RECIPIENT_AND_TYPE_SQL,
                 ConfigurationRowMappers.REPORT_CONFIG,
                 messageRecipientId,
-                reportType);
+                reportType.name());
         return singleRow(rows);
     }
 

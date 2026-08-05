@@ -1,7 +1,9 @@
 package com.example.commander.adapter.message.pht;
 
 import com.example.commander.adapter.message.InboundMqListenerConfig;
+import com.example.commander.domain.message.ReportType;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -26,7 +28,7 @@ public class PhtProperties {
 
     @NotBlank private String concurrency = "1-1";
 
-    @NotBlank private String reportType = "CAMT052B";
+    @NotNull private ReportType reportType = ReportType.CAMT052B;
 
     public boolean isEnabled() {
         return enabled;
@@ -52,11 +54,11 @@ public class PhtProperties {
         this.concurrency = concurrency;
     }
 
-    public String getReportType() {
+    public ReportType getReportType() {
         return reportType;
     }
 
-    public void setReportType(String reportType) {
+    public void setReportType(ReportType reportType) {
         this.reportType = reportType;
     }
 }

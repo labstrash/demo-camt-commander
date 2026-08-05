@@ -21,7 +21,7 @@ import java.util.Objects;
  */
 public record ReportMessage(
         int configId,
-        String reportType,
+        ReportType reportType,
         String reportVersion,
         Instant startDateTimeUtc,
         Instant endDateTimeUtc,
@@ -34,7 +34,7 @@ public record ReportMessage(
         String messageId) {
     public ReportMessage {
         validateConfigId(configId);
-        validateReportType(reportType);
+        Objects.requireNonNull(reportType, "reportType cannot be null");
         Objects.requireNonNull(reportVersion, "reportVersion cannot be null");
         Objects.requireNonNull(startDateTimeUtc, "startDateTimeUtc cannot be null");
         Objects.requireNonNull(endDateTimeUtc, "endDateTimeUtc cannot be null");
@@ -53,12 +53,6 @@ public record ReportMessage(
     private static void validateConfigId(int configId) {
         if (configId <= 0) {
             throw new IllegalArgumentException("configId must be positive");
-        }
-    }
-
-    private static void validateReportType(String reportType) {
-        if (reportType == null || reportType.isBlank()) {
-            throw new IllegalArgumentException("reportType cannot be null or blank");
         }
     }
 
@@ -108,7 +102,7 @@ public record ReportMessage(
 
     public static class Builder {
         private Integer configId;
-        private String reportType;
+        private ReportType reportType;
         private String reportVersion;
         private Instant windowStartUtc;
         private Instant windowEndUtc;
@@ -127,7 +121,7 @@ public record ReportMessage(
             return this;
         }
 
-        public Builder reportType(String reportType) {
+        public Builder reportType(ReportType reportType) {
             this.reportType = reportType;
             return this;
         }

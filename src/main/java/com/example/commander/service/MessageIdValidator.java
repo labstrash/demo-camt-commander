@@ -1,5 +1,6 @@
 package com.example.commander.service;
 
+import com.example.commander.domain.message.ReportType;
 import org.springframework.stereotype.Component;
 
 /**
@@ -21,7 +22,7 @@ public class MessageIdValidator {
      * @param reportType the report type the message ID was generated for (diagnostic context)
      * @throws IllegalStateException if the message ID is invalid
      */
-    public void validate(String messageId, int configId, String reportType) {
+    public void validate(String messageId, int configId, ReportType reportType) {
         if (messageId == null) {
             throw new IllegalStateException("Message ID cannot be null");
         }

@@ -1,7 +1,9 @@
 package com.example.commander.adapter.message;
 
+import com.example.commander.domain.message.ReportType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,7 +30,7 @@ public class MqProperties {
     /** Feature flag gating real MQ delivery — see the class Javadoc. */
     private boolean enabled = false;
 
-    @NotEmpty private Map<@NotBlank String, @NotBlank String> queues = new HashMap<>();
+    @NotEmpty private Map<@NotNull ReportType, @NotBlank String> queues = new HashMap<>();
 
     public boolean isEnabled() {
         return enabled;
@@ -38,11 +40,11 @@ public class MqProperties {
         this.enabled = enabled;
     }
 
-    public Map<String, String> getQueues() {
+    public Map<ReportType, String> getQueues() {
         return Collections.unmodifiableMap(queues);
     }
 
-    public void setQueues(Map<String, String> queues) {
+    public void setQueues(Map<ReportType, String> queues) {
         this.queues = queues != null ? new HashMap<>(queues) : new HashMap<>();
     }
 
@@ -53,7 +55,7 @@ public class MqProperties {
      * @return the configured queue name
      * @throws IllegalArgumentException if no queue is configured for this report type
      */
-    public String queueFor(String reportType) {
+    public String queueFor(ReportType reportType) {
         String queue = queues.get(reportType);
         if (queue == null) {
             throw new IllegalArgumentException("No commander.mq.queues entry configured for reportType=" + reportType);

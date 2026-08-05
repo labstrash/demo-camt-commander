@@ -3,6 +3,7 @@ package com.example.commander.scheduling;
 import com.example.commander.adapter.batch.reader.ReportPipelineItemReader;
 import com.example.commander.adapter.batch.trigger.ReportPipelineTrigger;
 import com.example.commander.config.SchedulingProperties;
+import com.example.commander.domain.message.ReportType;
 import com.example.commander.domain.report.ReportFrequency;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,13 +45,13 @@ public class PeriodicReportPipelineRunner {
     public void triggerAllConfiguredReportTypes() {
         for (SchedulingProperties.Schedule schedule : schedulingProperties.getSchedules()) {
             ReportFrequency frequency = ReportFrequency.fromConfig(schedule.getFrequency());
-            for (String reportType : schedule.getReportTypes()) {
+            for (ReportType reportType : schedule.getReportTypes()) {
                 triggerOne(reportType, frequency);
             }
         }
     }
 
-    private void triggerOne(String reportType, ReportFrequency frequency) {
+    private void triggerOne(ReportType reportType, ReportFrequency frequency) {
         try {
             JobExecution execution = reportPipelineTrigger.trigger(reportType, frequency);
             logSummary(reportType, frequency, execution);
@@ -59,7 +60,7 @@ public class PeriodicReportPipelineRunner {
         }
     }
 
-    private void logSummary(String reportType, ReportFrequency frequency, JobExecution execution) {
+    private void logSummary(ReportType reportType, ReportFrequency frequency, JobExecution execution) {
         // Deliberately NOT StepExecution.getReadCount(): that counts read() calls, i.e.
         // messages (ReportPipelineItemReader.read() returns one fanned-out message per call),
         // which is the same number as messagesWritten below and not what "configsRead" means.

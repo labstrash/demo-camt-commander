@@ -1,5 +1,6 @@
 package com.example.commander.repository.impl;
 
+import com.example.commander.domain.message.ReportType;
 import com.example.commander.repository.AgreementScopeRepository;
 import java.util.List;
 import java.util.Optional;
@@ -33,11 +34,11 @@ public class AgreementScopeRepositoryImpl implements AgreementScopeRepository {
     }
 
     @Override
-    public Optional<Long> findActiveMessageRecipientId(String engagementId, String reportType) {
+    public Optional<Long> findActiveMessageRecipientId(String engagementId, ReportType reportType) {
         List<Long> rows = jdbcTemplate.query(
                 FIND_ACTIVE_MESSAGE_RECIPIENT_ID_SQL,
                 (rs, rowNum) -> rs.getLong("MessageRecipientId"),
-                reportType,
+                reportType.name(),
                 engagementId);
         return singleRow(rows);
     }

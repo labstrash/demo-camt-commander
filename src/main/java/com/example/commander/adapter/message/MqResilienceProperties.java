@@ -1,5 +1,6 @@
 package com.example.commander.adapter.message;
 
+import com.example.commander.domain.message.ReportType;
 import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
@@ -57,7 +58,7 @@ public class MqResilienceProperties {
     /** Cron expression for the dead-letter recovery job's polling cadence — global across every report type. */
     @NotBlank private String recoveryJobCron = "0 */5 * * * ?";
 
-    private Map<String, RetryBackoff> backoffByReportType;
+    private Map<ReportType, RetryBackoff> backoffByReportType;
 
     public int getRetryMaxAttempts() {
         return retryMaxAttempts;
@@ -134,14 +135,14 @@ public class MqResilienceProperties {
      */
     @PostConstruct
     void flattenAndValidateTiers() {
-        Map<String, RetryBackoff> flattened = new HashMap<>();
-        Map<String, Integer> tierIndexByReportType = new HashMap<>();
+        Map<ReportType, RetryBackoff> flattened = new HashMap<>();
+        Map<ReportType, Integer> tierIndexByReportType = new HashMap<>();
 
         for (int tierIndex = 0; tierIndex < deadLetterRetryBackoffTiers.size(); tierIndex++) {
             RetryBackoffTier tier = deadLetterRetryBackoffTiers.get(tierIndex);
             RetryBackoff backoff = new RetryBackoff(tier.getBaseSeconds(), tier.getMaxSeconds());
 
-            for (String reportType : tier.getReportTypes()) {
+            for (ReportType reportType : tier.getReportTypes()) {
                 Integer existingTierIndex = tierIndexByReportType.putIfAbsent(reportType, tierIndex);
                 if (existingTierIndex != null) {
                     throw new IllegalStateException("Report type " + reportType
@@ -162,7 +163,7 @@ public class MqResilienceProperties {
      * @param reportType the report type
      * @return the effective backoff
      */
-    public RetryBackoff getDeadLetterRetryBackoff(String reportType) {
+    public RetryBackoff getDeadLetterRetryBackoff(ReportType reportType) {
         if (backoffByReportType == null) {
             flattenAndValidateTiers();
         }
@@ -207,7 +208,7 @@ public class MqResilienceProperties {
 
         @Positive private long maxSeconds;
 
-        @NotEmpty private List<String> reportTypes = new ArrayList<>();
+        @NotEmpty private List<ReportType> reportTypes = new ArrayList<>();
 
         public long getBaseSeconds() {
             return baseSeconds;
@@ -225,11 +226,11 @@ public class MqResilienceProperties {
             this.maxSeconds = maxSeconds;
         }
 
-        public List<String> getReportTypes() {
+        public List<ReportType> getReportTypes() {
             return Collections.unmodifiableList(reportTypes);
         }
 
-        public void setReportTypes(List<String> reportTypes) {
+        public void setReportTypes(List<ReportType> reportTypes) {
             this.reportTypes = reportTypes != null ? new ArrayList<>(reportTypes) : new ArrayList<>();
         }
     }

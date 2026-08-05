@@ -6,6 +6,7 @@ import com.example.commander.domain.config.AliasAssignmentRow;
 import com.example.commander.domain.config.PaymentTypeAssignmentRow;
 import com.example.commander.domain.config.ReportConfigRow;
 import com.example.commander.domain.config.ReportConfigTree;
+import com.example.commander.domain.message.ReportType;
 import java.util.Collection;
 import java.util.List;
 
@@ -36,7 +37,7 @@ public interface ReportConfigTreeRepository {
      * @param pageSize maximum rows to return
      * @return list of report configurations for the requested page
      */
-    List<ReportConfigRow> findConfigPage(String reportType, String reportFrequency, long lastSeenId, int pageSize);
+    List<ReportConfigRow> findConfigPage(ReportType reportType, String reportFrequency, long lastSeenId, int pageSize);
 
     /**
      * Finds agreement scopes by parent configuration IDs.

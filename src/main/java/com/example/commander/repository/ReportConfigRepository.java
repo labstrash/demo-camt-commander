@@ -2,6 +2,7 @@ package com.example.commander.repository;
 
 import com.example.commander.domain.config.RecipientRow;
 import com.example.commander.domain.config.ReportConfigRow;
+import com.example.commander.domain.message.ReportType;
 import java.util.Optional;
 
 /**
@@ -46,5 +47,5 @@ public interface ReportConfigRepository {
      * @param reportType type of report to generate
      * @return the active report configuration if found, or empty if no match
      */
-    Optional<ReportConfigRow> findActiveByRecipientAndReportType(long messageRecipientId, String reportType);
+    Optional<ReportConfigRow> findActiveByRecipientAndReportType(long messageRecipientId, ReportType reportType);
 }

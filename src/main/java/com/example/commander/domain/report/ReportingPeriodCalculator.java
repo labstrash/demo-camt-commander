@@ -1,6 +1,7 @@
 package com.example.commander.domain.report;
 
 import com.example.commander.config.SchedulingProperties;
+import com.example.commander.domain.message.ReportType;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -165,7 +166,8 @@ public class ReportingPeriodCalculator {
      * @throws IllegalStateException if frequency is a window-time frequency and no configured
      *     {@code commander.scheduling} schedule matches {@code reportType}/{@code frequency}
      */
-    public ReportWindow calculateForReference(ReportFrequency frequency, Instant referenceInstant, String reportType) {
+    public ReportWindow calculateForReference(
+            ReportFrequency frequency, Instant referenceInstant, ReportType reportType) {
         Objects.requireNonNull(frequency, "frequency");
         Objects.requireNonNull(referenceInstant, "referenceInstant");
 
@@ -195,7 +197,7 @@ public class ReportingPeriodCalculator {
         return calculate(frequency, fireInstantForDate, sequence, boundaries);
     }
 
-    private List<LocalTime> boundariesFor(ReportFrequency frequency, String reportType) {
+    private List<LocalTime> boundariesFor(ReportFrequency frequency, ReportType reportType) {
         for (SchedulingProperties.Schedule schedule : schedulingProperties.getSchedules()) {
             if (frequency.name().equals(schedule.getFrequency())
                     && schedule.getReportTypes() != null

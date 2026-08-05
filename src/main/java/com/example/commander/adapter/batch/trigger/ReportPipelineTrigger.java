@@ -1,6 +1,7 @@
 package com.example.commander.adapter.batch.trigger;
 
 import com.example.commander.adapter.batch.config.BatchPipelineConfig;
+import com.example.commander.domain.message.ReportType;
 import com.example.commander.domain.report.ReportFrequency;
 import com.example.commander.domain.report.ReportWindow;
 import com.example.commander.domain.report.ReportingPeriodCalculator;
@@ -52,7 +53,7 @@ public class ReportPipelineTrigger {
      * @param frequency the report frequency to run
      * @return the resulting job execution
      */
-    public JobExecution trigger(String reportType, ReportFrequency frequency)
+    public JobExecution trigger(ReportType reportType, ReportFrequency frequency)
             throws JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException,
                     InvalidJobParametersException {
         return trigger(reportType, frequency, Instant.now());
@@ -68,13 +69,13 @@ public class ReportPipelineTrigger {
      * @param referenceInstant the instant to derive the reporting window from
      * @return the resulting job execution
      */
-    public JobExecution trigger(String reportType, ReportFrequency frequency, Instant referenceInstant)
+    public JobExecution trigger(ReportType reportType, ReportFrequency frequency, Instant referenceInstant)
             throws JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException,
                     InvalidJobParametersException {
         ReportWindow window = periodCalculator.calculateForReference(frequency, referenceInstant, reportType);
 
         JobParameters jobParameters = new JobParametersBuilder()
-                .addString("reportType", reportType)
+                .addString("reportType", reportType.name())
                 .addString("reportFrequency", frequency.dbCode())
                 .addJobParameter(new JobParameter<>("startDateTimeUtc", window.windowStartUtc(), Instant.class))
                 .addJobParameter(new JobParameter<>("endDateTimeUtc", window.windowEndUtc(), Instant.class))

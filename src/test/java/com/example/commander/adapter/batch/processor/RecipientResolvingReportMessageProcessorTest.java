@@ -58,7 +58,7 @@ class RecipientResolvingReportMessageProcessorTest {
     private static ReportMessageEnvelope placeholderMessage() {
         ReportMessage payload = new ReportMessage(
                 12345678,
-                "CAMT054C",
+                ReportType.CAMT054C,
                 "1.0",
                 Instant.parse("2026-07-01T00:00:00Z"),
                 Instant.parse("2026-07-02T00:00:00Z"),

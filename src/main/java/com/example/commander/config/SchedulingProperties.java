@@ -1,5 +1,6 @@
 package com.example.commander.config;
 
+import com.example.commander.domain.message.ReportType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -77,7 +78,7 @@ public class SchedulingProperties {
             validateWindowMinutes(i, schedule);
             validateBoundaries(i, schedule);
 
-            for (String reportType : schedule.getReportTypes()) {
+            for (ReportType reportType : schedule.getReportTypes()) {
                 String pairKey = reportType + "|" + schedule.getFrequency();
                 if (!seenPairs.add(pairKey)) {
                     throw new IllegalStateException(String.format(
@@ -182,7 +183,7 @@ public class SchedulingProperties {
         private String daysOfWeek = "MON-FRI";
 
         /** Report types that should run on this schedule. Must contain at least one entry. */
-        @NotEmpty private List<String> reportTypes = new ArrayList<>();
+        @NotEmpty private List<ReportType> reportTypes = new ArrayList<>();
 
         public String getFrequency() {
             return frequency;
@@ -224,11 +225,11 @@ public class SchedulingProperties {
             this.daysOfWeek = daysOfWeek;
         }
 
-        public List<String> getReportTypes() {
+        public List<ReportType> getReportTypes() {
             return reportTypes;
         }
 
-        public void setReportTypes(List<String> reportTypes) {
+        public void setReportTypes(List<ReportType> reportTypes) {
             this.reportTypes = reportTypes;
         }
 

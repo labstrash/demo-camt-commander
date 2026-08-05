@@ -13,6 +13,7 @@ import com.example.commander.domain.message.Recipient;
 import com.example.commander.domain.message.RecipientType;
 import com.example.commander.domain.message.ReportContext;
 import com.example.commander.domain.message.ReportMessageEnvelope;
+import com.example.commander.domain.message.ReportType;
 import com.example.commander.domain.message.TriggerType;
 import com.example.commander.domain.pht.PhtAccountBalance;
 import com.example.commander.domain.pht.PhtBalanceMessage;
@@ -91,7 +92,7 @@ public class PhtReportOrchestrationService {
      * @param phtMessage the parsed inbound message
      */
     public void process(PhtBalanceMessage phtMessage) {
-        String reportType = phtProperties.getReportType();
+        ReportType reportType = phtProperties.getReportType();
 
         Optional<Long> recipientId =
                 agreementScopeRepository.findActiveMessageRecipientId(phtMessage.accountOwner(), reportType);

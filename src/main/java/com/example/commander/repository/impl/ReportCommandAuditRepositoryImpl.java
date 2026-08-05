@@ -67,7 +67,7 @@ public class ReportCommandAuditRepositoryImpl implements ReportCommandAuditRepos
             setNullableLong(ps, i++, entry.reportConfigId());
             ps.setString(i++, entry.configId());
             setNullableLong(ps, i++, entry.agreementScopeId());
-            ps.setString(i++, entry.reportType());
+            ps.setString(i++, entry.reportType().name());
             ps.setString(i++, entry.reportVersion());
             ps.setString(i++, entry.reportFrequency());
             ps.setString(i++, entry.triggerType().name());

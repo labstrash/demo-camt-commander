@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
+import com.example.commander.domain.message.ReportType;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -34,7 +35,7 @@ class AgreementScopeRepositoryImplTest {
         when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq("CAMT052B"), eq("062021002635")))
                 .thenReturn(List.of());
 
-        Optional<Long> result = repository.findActiveMessageRecipientId("062021002635", "CAMT052B");
+        Optional<Long> result = repository.findActiveMessageRecipientId("062021002635", ReportType.CAMT052B);
 
         assertThat(result).isEmpty();
     }
@@ -45,7 +46,7 @@ class AgreementScopeRepositoryImplTest {
         when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq("CAMT052B"), eq("062021002635")))
                 .thenReturn(List.of(999L));
 
-        Optional<Long> result = repository.findActiveMessageRecipientId("062021002635", "CAMT052B");
+        Optional<Long> result = repository.findActiveMessageRecipientId("062021002635", ReportType.CAMT052B);
 
         assertThat(result).contains(999L);
     }
@@ -56,7 +57,7 @@ class AgreementScopeRepositoryImplTest {
         when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq("CAMT052B"), eq("062021002635")))
                 .thenReturn(List.of(999L, 998L));
 
-        assertThatThrownBy(() -> repository.findActiveMessageRecipientId("062021002635", "CAMT052B"))
+        assertThatThrownBy(() -> repository.findActiveMessageRecipientId("062021002635", ReportType.CAMT052B))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("2");
     }

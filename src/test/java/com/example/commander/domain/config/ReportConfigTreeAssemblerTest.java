@@ -3,6 +3,7 @@ package com.example.commander.domain.config;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
+import com.example.commander.domain.message.ReportType;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +19,7 @@ class ReportConfigTreeAssemblerTest {
 
     @Test
     void zeroScopeConfigProducesTreeWithEmptyScopeList() {
-        ReportConfigRow config = config(1L, "CAMT054D");
+        ReportConfigRow config = config(1L, ReportType.CAMT054D);
 
         List<ReportConfigTree> trees =
                 ReportConfigTreeAssembler.assemble(List.of(config), List.of(), List.of(), List.of(), List.of());
@@ -39,7 +40,7 @@ class ReportConfigTreeAssemblerTest {
 
     @Test
     void multiScopeFanInAssemblesFullHierarchyForSingleConfig() {
-        ReportConfigRow config = config(1L, "CAMT054C");
+        ReportConfigRow config = config(1L, ReportType.CAMT054C);
 
         AgreementScopeRow scopeA = new AgreementScopeRow(101L, 1L, "Scope A");
         AgreementScopeRow scopeB = new AgreementScopeRow(102L, 1L, "Scope B");
@@ -83,7 +84,7 @@ class ReportConfigTreeAssemblerTest {
 
     @Test
     void danglingPaymentTypeAssignmentWithNoAccountsOrAliasesIsIncludedAsEmptyNode() {
-        ReportConfigRow config = config(1L, "CAMT054C");
+        ReportConfigRow config = config(1L, ReportType.CAMT054C);
         AgreementScopeRow scope = new AgreementScopeRow(101L, 1L, "Scope A");
         PaymentTypeAssignmentRow danglingAssignment = new PaymentTypeAssignmentRow(201L, 101L, "SWISH");
 
@@ -101,7 +102,7 @@ class ReportConfigTreeAssemblerTest {
 
     @Test
     void scopeWithNoPaymentTypeAssignmentsProducesEmptyAssignmentList() {
-        ReportConfigRow config = config(1L, "CAMT054C");
+        ReportConfigRow config = config(1L, ReportType.CAMT054C);
         AgreementScopeRow scope = new AgreementScopeRow(101L, 1L, "Scope A");
 
         List<ReportConfigTree> trees =
@@ -114,7 +115,7 @@ class ReportConfigTreeAssemblerTest {
 
     @Test
     void invariantViolatingAssignmentWithBothAccountsAndAliasesThrows() {
-        ReportConfigRow config = config(1L, "CAMT054C");
+        ReportConfigRow config = config(1L, ReportType.CAMT054C);
         AgreementScopeRow scope = new AgreementScopeRow(101L, 1L, "Scope A");
         PaymentTypeAssignmentRow assignment = new PaymentTypeAssignmentRow(201L, 101L, "SWISH");
         AccountAssignmentRow account = new AccountAssignmentRow(301L, 201L, "1234", "5678901", null, "SEK");
@@ -128,8 +129,8 @@ class ReportConfigTreeAssemblerTest {
 
     @Test
     void rowsAreGroupedIndependentlyPerConfigOnTheSamePage() {
-        ReportConfigRow config1 = config(1L, "CAMT054C");
-        ReportConfigRow config2 = config(2L, "CAMT054C");
+        ReportConfigRow config1 = config(1L, ReportType.CAMT054C);
+        ReportConfigRow config2 = config(2L, ReportType.CAMT054C);
 
         AgreementScopeRow scopeForConfig1 = new AgreementScopeRow(101L, 1L, "Scope A");
         AgreementScopeRow scopeForConfig2 = new AgreementScopeRow(102L, 2L, "Scope B");
@@ -170,9 +171,9 @@ class ReportConfigTreeAssemblerTest {
 
     @Test
     void configOrderInResultMatchesInputConfigOrder() {
-        ReportConfigRow config1 = config(1L, "CAMT054C");
-        ReportConfigRow config2 = config(2L, "CAMT054C");
-        ReportConfigRow config3 = config(3L, "CAMT054C");
+        ReportConfigRow config1 = config(1L, ReportType.CAMT054C);
+        ReportConfigRow config2 = config(2L, ReportType.CAMT054C);
+        ReportConfigRow config3 = config(3L, ReportType.CAMT054C);
 
         List<ReportConfigTree> trees = ReportConfigTreeAssembler.assemble(
                 List.of(config1, config2, config3), List.of(), List.of(), List.of(), List.of());
@@ -180,7 +181,7 @@ class ReportConfigTreeAssemblerTest {
         assertThat(trees).extracting(t -> t.config().id()).containsExactly(1L, 2L, 3L);
     }
 
-    private static ReportConfigRow config(long id, String reportType) {
+    private static ReportConfigRow config(long id, ReportType reportType) {
         return new ReportConfigRow(
                 id,
                 10_000_000 + (int) id,

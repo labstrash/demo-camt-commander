@@ -10,6 +10,7 @@ import com.example.commander.domain.message.Recipient;
 import com.example.commander.domain.message.RecipientType;
 import com.example.commander.domain.message.ReportMessage;
 import com.example.commander.domain.message.ReportMessageEnvelope;
+import com.example.commander.domain.message.ReportType;
 import com.example.commander.domain.message.TriggerType;
 import com.example.commander.service.ReportMessageDeliveryService;
 import java.time.Instant;
@@ -37,7 +38,7 @@ class MqReportMessageWriterTest {
 
     private MqReportMessageWriter newWriter() {
         MqProperties mqProperties = new MqProperties();
-        mqProperties.setQueues(Map.of("CAMT054C", TARGET_QUEUE));
+        mqProperties.setQueues(Map.of(ReportType.CAMT054C, TARGET_QUEUE));
         return new MqReportMessageWriter(deliveryService, mqProperties, "CAMT054C", "DAILY", 111L, 222L);
     }
 
@@ -76,7 +77,7 @@ class MqReportMessageWriterTest {
     private static ReportMessageEnvelope message(String correlationId, String messageId) {
         ReportMessage payload = new ReportMessage(
                 12345678,
-                "CAMT054C",
+                ReportType.CAMT054C,
                 "1.0",
                 Instant.parse("2026-07-01T00:00:00Z"),
                 Instant.parse("2026-07-02T00:00:00Z"),

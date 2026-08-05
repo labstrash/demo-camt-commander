@@ -1,6 +1,7 @@
 package com.example.commander.domain.message;
 
 import io.hypersistence.tsid.TSID;
+import java.util.Objects;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -23,7 +24,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class ReportMessageIdGenerator {
     private static final String DEFAULT_PREFIX = "FIKASE";
-    private static final int MIN_REPORT_TYPE_LENGTH = 6;
     private static final String DEFAULT_PAGE_SUFFIX = "0000";
 
     private final String prefix;
@@ -45,42 +45,23 @@ public class ReportMessageIdGenerator {
      * @param reportId The ID of the report (unique per report)
      * @param reportType The type of the report
      * @return A unique identifier string for the report message
-     * @throws IllegalArgumentException if the reportType is null or invalid
+     * @throws NullPointerException if reportType is null
      */
-    public String generateMessageId(long reportId, String reportType) {
-        validateReportType(reportType);
+    public String generateMessageId(long reportId, ReportType reportType) {
+        Objects.requireNonNull(reportType, "reportType cannot be null");
 
-        String typeCode = extractTypeCode(reportType);
+        String typeCode = extractTypeCode(reportType.name());
         String timestamp = generateTimestamp();
         String pageNumber = getPageSuffix();
 
         return String.format("%s%s%d%s%s", prefix, typeCode, reportId, timestamp, pageNumber);
     }
 
-    private void validateReportType(String reportType) {
-        if (reportType == null || reportType.isBlank()) {
-            throw new IllegalArgumentException("Report type cannot be null or blank");
-        }
-
-        String cleaned = reportType.replace("-", "");
-        if (cleaned.length() < MIN_REPORT_TYPE_LENGTH) {
-            throw new IllegalArgumentException(String.format(
-                    "Report type must have at least %d characters after removing hyphens. "
-                            + "Current: '%s' (%d characters)",
-                    MIN_REPORT_TYPE_LENGTH, reportType, cleaned.length()));
-        }
-    }
-
     private String extractTypeCode(String reportType) {
-        // Remove hyphens and convert to uppercase
-        String cleaned = reportType.replace("-", "").toUpperCase();
-
-        // Extract from position 5 (0-indexed) which is the 6th character
+        // Extract from position 5 (0-indexed) which is the 6th character. Safe unconditionally
+        // — every ReportType constant name is at least 8 characters.
         // This is fragile - consider using a more explicit mapping in future
-        if (cleaned.length() > 5) {
-            return cleaned.substring(5);
-        }
-        return cleaned;
+        return reportType.substring(5);
     }
 
     private String generateTimestamp() {

@@ -3,6 +3,7 @@ package com.example.commander.adapter.batch.writer;
 import com.example.commander.adapter.message.MqProperties;
 import com.example.commander.domain.audit.ReportCommandAuditStatus;
 import com.example.commander.domain.message.ReportMessageEnvelope;
+import com.example.commander.domain.message.ReportType;
 import com.example.commander.service.ReportMessageDeliveryService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +46,7 @@ public class MqReportMessageWriter implements ItemWriter<ReportMessageEnvelope> 
             @Value("#{stepExecution.id}") Long stepExecutionId) {
         this.deliveryService = deliveryService;
         this.reportFrequency = reportFrequency;
-        this.targetQueue = mqProperties.queueFor(reportType);
+        this.targetQueue = mqProperties.queueFor(ReportType.valueOf(reportType));
         this.jobExecutionId = jobExecutionId;
         this.stepExecutionId = stepExecutionId;
     }

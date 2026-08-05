@@ -1,6 +1,7 @@
 package com.example.commander.repository.impl;
 
 import com.example.commander.domain.deadletter.DeadLetterMessage;
+import com.example.commander.domain.message.ReportType;
 import com.example.commander.repository.DeadLetterMessageRepository;
 import java.sql.Timestamp;
 import java.sql.Types;
@@ -33,7 +34,7 @@ public class DeadLetterMessageRepositoryImpl implements DeadLetterMessageReposit
             rs.getString("message_id"),
             rs.getLong("report_config_id"),
             (Long) rs.getObject("agreement_scope_id", Long.class),
-            rs.getString("report_type"),
+            ReportType.valueOf(rs.getString("report_type")),
             rs.getString("message_payload"),
             rs.getString("target_queue"),
             rs.getInt("retry_count"),
@@ -90,7 +91,7 @@ public class DeadLetterMessageRepositoryImpl implements DeadLetterMessageReposit
             } else {
                 ps.setNull(3, Types.BIGINT);
             }
-            ps.setString(4, row.reportType());
+            ps.setString(4, row.reportType().name());
             ps.setString(5, row.messagePayload());
             ps.setString(6, row.targetQueue());
             ps.setInt(7, row.maxRetries());

@@ -6,6 +6,7 @@ import com.example.commander.domain.message.Recipient;
 import com.example.commander.domain.message.RecipientType;
 import com.example.commander.domain.message.ReportMessage;
 import com.example.commander.domain.message.ReportMessageEnvelope;
+import com.example.commander.domain.message.ReportType;
 import com.example.commander.domain.message.TriggerType;
 import java.time.Instant;
 import java.util.List;
@@ -20,7 +21,7 @@ class LoggingReportMessageWriterTest {
     void writesAChunkOfMessagesWithoutThrowing() {
         ReportMessage message = new ReportMessage(
                 12345678,
-                "CAMT054C",
+                ReportType.CAMT054C,
                 "1.0",
                 Instant.parse("2026-07-01T00:00:00Z"),
                 Instant.parse("2026-07-02T00:00:00Z"),

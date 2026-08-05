@@ -8,6 +8,7 @@ import com.example.commander.domain.config.PaymentTypeAssignmentRow;
 import com.example.commander.domain.config.ReportConfigRow;
 import com.example.commander.domain.config.ReportConfigTree;
 import com.example.commander.domain.config.ReportConfigTreeAssembler;
+import com.example.commander.domain.message.ReportType;
 import com.example.commander.repository.ReportConfigTreeRepository;
 import com.example.commander.repository.tvp.TvpParameterSource;
 import java.util.Collection;
@@ -93,9 +94,9 @@ public class ReportConfigTreeRepositoryImpl implements ReportConfigTreeRepositor
 
     @Override
     public List<ReportConfigRow> findConfigPage(
-            String reportType, String reportFrequency, long lastSeenId, int pageSize) {
+            ReportType reportType, String reportFrequency, long lastSeenId, int pageSize) {
         MapSqlParameterSource params = new MapSqlParameterSource()
-                .addValue("reportType", reportType)
+                .addValue("reportType", reportType.name())
                 .addValue("reportFrequency", reportFrequency)
                 .addValue("lastSeenId", lastSeenId)
                 .addValue("pageSize", pageSize);
@@ -150,7 +151,7 @@ public class ReportConfigTreeRepositoryImpl implements ReportConfigTreeRepositor
         }
 
         long lastSeenId = configs.getLast().id();
-        String reportType = configs.getFirst().reportType();
+        ReportType reportType = configs.getFirst().reportType();
         String reportFrequency = configs.getFirst().reportFrequency();
 
         List<Long> configIds = configs.stream().map(ReportConfigRow::id).toList();
@@ -172,7 +173,7 @@ public class ReportConfigTreeRepositoryImpl implements ReportConfigTreeRepositor
     }
 
     private <T> List<T> fetchStage(
-            String stageName, String reportType, String reportFrequency, long lastSeenId, Supplier<List<T>> query) {
+            String stageName, ReportType reportType, String reportFrequency, long lastSeenId, Supplier<List<T>> query) {
         try {
             return query.get();
         } catch (RuntimeException e) {

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.example.commander.config.SchedulingProperties;
+import com.example.commander.domain.message.ReportType;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -236,14 +237,15 @@ class ReportingPeriodCalculatorTest {
         Instant reference =
                 ZonedDateTime.of(2026, 1, 15, 10, 30, 0, 0, ZoneId.of("UTC")).toInstant();
 
-        ReportWindow window = calculator.calculateForReference(ReportFrequency.DAILY, reference, "CAMT054C");
+        ReportWindow window = calculator.calculateForReference(ReportFrequency.DAILY, reference, ReportType.CAMT054C);
 
         assertThat(window).isEqualTo(calculator.calculate(ReportFrequency.DAILY, reference));
     }
 
     @Test
     void calculateForReferencePicksTheMostRecentlyCompletedWindowTimeWindow() {
-        properties.setSchedules(List.of(scheduleFor("FOUR_TIMES_PER_DAY", "10:00,13:00,18:00,21:00", "CAMT054C")));
+        properties.setSchedules(
+                List.of(scheduleFor("FOUR_TIMES_PER_DAY", "10:00,13:00,18:00,21:00", ReportType.CAMT054C)));
         // 14:00 local: the last boundary at-or-before this is 13:00, so the most recently
         // completed window is 10:00-13:00 - already finished, unlike the 13:00-18:00 window
         // reference actually falls inside of.
@@ -251,7 +253,7 @@ class ReportingPeriodCalculatorTest {
                 .toInstant();
 
         ReportWindow window =
-                calculator.calculateForReference(ReportFrequency.FOUR_TIMES_PER_DAY, reference, "CAMT054C");
+                calculator.calculateForReference(ReportFrequency.FOUR_TIMES_PER_DAY, reference, ReportType.CAMT054C);
 
         ZoneId zone = ZoneId.of("Europe/Stockholm");
         assertThat(window.windowStartUtc())
@@ -262,13 +264,14 @@ class ReportingPeriodCalculatorTest {
 
     @Test
     void calculateForReferenceRollsBackToPreviousDaysLastWindowBeforeTheFirstBoundary() {
-        properties.setSchedules(List.of(scheduleFor("ONE_TIME_PER_DAY", "21:00", "CAMT054C")));
+        properties.setSchedules(List.of(scheduleFor("ONE_TIME_PER_DAY", "21:00", ReportType.CAMT054C)));
         // 05:00 local is before the day's only (21:00) boundary - the most recently
         // completed window is yesterday's, midnight-to-21:00 the day before.
         Instant reference = ZonedDateTime.of(2026, 1, 15, 5, 0, 0, 0, ZoneId.of("Europe/Stockholm"))
                 .toInstant();
 
-        ReportWindow window = calculator.calculateForReference(ReportFrequency.ONE_TIME_PER_DAY, reference, "CAMT054C");
+        ReportWindow window =
+                calculator.calculateForReference(ReportFrequency.ONE_TIME_PER_DAY, reference, ReportType.CAMT054C);
 
         ZoneId zone = ZoneId.of("Europe/Stockholm");
         assertThat(window.windowStartUtc())
@@ -279,16 +282,17 @@ class ReportingPeriodCalculatorTest {
 
     @Test
     void calculateForReferenceThrowsWhenNoScheduleConfiguredForReportType() {
-        properties.setSchedules(List.of(scheduleFor("ONE_TIME_PER_DAY", "21:00", "CAMT054C")));
+        properties.setSchedules(List.of(scheduleFor("ONE_TIME_PER_DAY", "21:00", ReportType.CAMT054C)));
         Instant reference = Instant.now();
 
-        assertThatThrownBy(() ->
-                        calculator.calculateForReference(ReportFrequency.ONE_TIME_PER_DAY, reference, "OTHERTYPE"))
+        assertThatThrownBy(() -> calculator.calculateForReference(
+                        ReportFrequency.ONE_TIME_PER_DAY, reference, ReportType.CAMT053E))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("OTHERTYPE");
+                .hasMessageContaining("CAMT053E");
     }
 
-    private static SchedulingProperties.Schedule scheduleFor(String frequency, String boundaries, String reportType) {
+    private static SchedulingProperties.Schedule scheduleFor(
+            String frequency, String boundaries, ReportType reportType) {
         SchedulingProperties.Schedule schedule = new SchedulingProperties.Schedule();
         schedule.setFrequency(frequency);
         schedule.setBoundaries(boundaries);

@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import com.example.commander.domain.config.RecipientRow;
 import com.example.commander.domain.config.ReportConfigRow;
+import com.example.commander.domain.message.ReportType;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -113,7 +114,7 @@ class ReportConfigRepositoryImplTest {
         when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(999L), eq("CAMT054C")))
                 .thenReturn(List.of());
 
-        Optional<ReportConfigRow> result = repository.findActiveByRecipientAndReportType(999L, "CAMT054C");
+        Optional<ReportConfigRow> result = repository.findActiveByRecipientAndReportType(999L, ReportType.CAMT054C);
 
         assertThat(result).isEmpty();
     }
@@ -122,11 +123,22 @@ class ReportConfigRepositoryImplTest {
     void findByRecipientAndReportTypeReturnsSingleMatchRelyingOnUniqueConstraint() {
         repository = new ReportConfigRepositoryImpl(jdbcTemplate);
         ReportConfigRow config = new ReportConfigRow(
-                1L, 12345678, "CAMT054C", "1.0", "ONE_TIME_PER_DAY", "desc", 999L, "IBAN", true, false, false, true);
+                1L,
+                12345678,
+                ReportType.CAMT054C,
+                "1.0",
+                "ONE_TIME_PER_DAY",
+                "desc",
+                999L,
+                "IBAN",
+                true,
+                false,
+                false,
+                true);
         when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(999L), eq("CAMT054C")))
                 .thenReturn(List.of(config));
 
-        Optional<ReportConfigRow> result = repository.findActiveByRecipientAndReportType(999L, "CAMT054C");
+        Optional<ReportConfigRow> result = repository.findActiveByRecipientAndReportType(999L, ReportType.CAMT054C);
 
         assertThat(result).contains(config);
     }
@@ -135,13 +147,35 @@ class ReportConfigRepositoryImplTest {
     void findByRecipientAndReportTypeThrowsWhenMultipleRowsMatch() {
         repository = new ReportConfigRepositoryImpl(jdbcTemplate);
         ReportConfigRow config1 = new ReportConfigRow(
-                1L, 11111111, "CAMT054C", "1.0", "ONE_TIME_PER_DAY", "desc", 999L, "IBAN", true, false, false, true);
+                1L,
+                11111111,
+                ReportType.CAMT054C,
+                "1.0",
+                "ONE_TIME_PER_DAY",
+                "desc",
+                999L,
+                "IBAN",
+                true,
+                false,
+                false,
+                true);
         ReportConfigRow config2 = new ReportConfigRow(
-                2L, 22222222, "CAMT054C", "1.0", "ONE_TIME_PER_DAY", "desc", 999L, "IBAN", true, false, false, true);
+                2L,
+                22222222,
+                ReportType.CAMT054C,
+                "1.0",
+                "ONE_TIME_PER_DAY",
+                "desc",
+                999L,
+                "IBAN",
+                true,
+                false,
+                false,
+                true);
         when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(999L), eq("CAMT054C")))
                 .thenReturn(List.of(config1, config2));
 
-        assertThatThrownBy(() -> repository.findActiveByRecipientAndReportType(999L, "CAMT054C"))
+        assertThatThrownBy(() -> repository.findActiveByRecipientAndReportType(999L, ReportType.CAMT054C))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("unique-constraint");
     }
@@ -152,7 +186,7 @@ class ReportConfigRepositoryImplTest {
         when(jdbcTemplate.query(anyString(), any(RowMapper.class), eq(999L), eq("CAMT054C")))
                 .thenReturn(List.of());
 
-        repository.findActiveByRecipientAndReportType(999L, "CAMT054C");
+        repository.findActiveByRecipientAndReportType(999L, ReportType.CAMT054C);
 
         // Can't run this against a real SQL Server here to prove a deactivated config is
         // excluded end-to-end (see the guide's testing strategy) — asserting the query text

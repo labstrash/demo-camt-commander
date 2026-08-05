@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import com.example.commander.domain.audit.ReportCommandAuditEntry;
 import com.example.commander.domain.audit.ReportCommandAuditStatus;
+import com.example.commander.domain.message.ReportType;
 import com.example.commander.domain.message.TriggerType;
 import java.sql.PreparedStatement;
 import java.sql.Types;
@@ -136,7 +137,7 @@ class ReportCommandAuditRepositoryImplTest {
                 .reportConfigId(reportConfigId)
                 .configId("12345678")
                 .agreementScopeId(agreementScopeId)
-                .reportType("CAMT054C")
+                .reportType(ReportType.CAMT054C)
                 .reportVersion("1.0")
                 .reportFrequency("DAILY")
                 .triggerType(TriggerType.SCHEDULED)

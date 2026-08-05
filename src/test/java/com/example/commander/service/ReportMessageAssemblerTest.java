@@ -18,6 +18,7 @@ import com.example.commander.domain.message.RecipientType;
 import com.example.commander.domain.message.ReportContext;
 import com.example.commander.domain.message.ReportMessageEnvelope;
 import com.example.commander.domain.message.ReportMessageIdGenerator;
+import com.example.commander.domain.message.ReportType;
 import com.example.commander.domain.message.TriggerType;
 import com.example.commander.domain.report.ReportWindow;
 import java.time.Instant;
@@ -248,7 +249,18 @@ class ReportMessageAssemblerTest {
         // configured report type (3) — pushes the generated ID to exactly 35 characters.
         // MessageIdValidator's 35-char ceiling is inclusive, so this must succeed, not throw.
         ReportConfigRow longSuffixConfig = new ReportConfigRow(
-                1L, 12345678, "CAMT052BT", "1.0", "EVERY_30_MIN", "desc", 999L, "IBAN", true, false, false, true);
+                1L,
+                12345678,
+                ReportType.CAMT052BT,
+                "1.0",
+                "EVERY_30_MIN",
+                "desc",
+                999L,
+                "IBAN",
+                true,
+                false,
+                false,
+                true);
         ReportConfigTree tree = new ReportConfigTree(longSuffixConfig, List.of());
 
         String messageId = service.assemble(tree, context()).get(0).payload().messageId();
@@ -261,7 +273,18 @@ class ReportMessageAssemblerTest {
 
     private static ReportConfigRow config(boolean bundled) {
         return new ReportConfigRow(
-                1L, 12345678, "CAMT054C", "1.0", "ONE_TIME_PER_DAY", "desc", 999L, "IBAN", true, false, false, bundled);
+                1L,
+                12345678,
+                ReportType.CAMT054C,
+                "1.0",
+                "ONE_TIME_PER_DAY",
+                "desc",
+                999L,
+                "IBAN",
+                true,
+                false,
+                false,
+                bundled);
     }
 
     private static AccountAssignmentRow account(long id, long assignmentId) {

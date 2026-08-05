@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.commander.domain.audit.ReportCommandAuditStatus;
+import com.example.commander.domain.message.ReportType;
 import com.example.commander.domain.ondemand.OnDemandReportRequest;
 import com.example.commander.domain.ondemand.OnDemandReportResult;
 import com.example.commander.service.OnDemandReportService;
@@ -68,7 +69,7 @@ class OnDemandMessageListenerTest {
         OnDemandReportRequest request = captor.getValue();
         assertThat(request.recipientType()).isEqualTo("BIC");
         assertThat(request.recipientValue()).isEqualTo("SOMEBIC");
-        assertThat(request.reportType()).isEqualTo("CAMT054C");
+        assertThat(request.reportType()).isEqualTo(ReportType.CAMT054C);
         assertThat(request.reportVersion()).isEqualTo("1.0");
         assertThat(request.windowStartUtc()).isEqualTo(Instant.parse("2026-07-01T00:00:00Z"));
         assertThat(request.windowEndUtc()).isEqualTo(Instant.parse("2026-07-02T00:00:00Z"));

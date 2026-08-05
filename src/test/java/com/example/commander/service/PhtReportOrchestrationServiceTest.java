@@ -22,6 +22,7 @@ import com.example.commander.domain.message.Recipient;
 import com.example.commander.domain.message.RecipientType;
 import com.example.commander.domain.message.ReportMessage;
 import com.example.commander.domain.message.ReportMessageEnvelope;
+import com.example.commander.domain.message.ReportType;
 import com.example.commander.domain.message.TriggerType;
 import com.example.commander.domain.pht.PhtAccountBalance;
 import com.example.commander.domain.pht.PhtBalanceMessage;
@@ -64,9 +65,9 @@ class PhtReportOrchestrationServiceTest {
 
     private PhtReportOrchestrationService newService() {
         MqProperties mqProperties = new MqProperties();
-        mqProperties.setQueues(Map.of("CAMT052B", "CAMT.052B.QUEUE"));
+        mqProperties.setQueues(Map.of(ReportType.CAMT052B, "CAMT.052B.QUEUE"));
         PhtProperties phtProperties = new PhtProperties();
-        phtProperties.setReportType("CAMT052B");
+        phtProperties.setReportType(ReportType.CAMT052B);
         SchedulingProperties schedulingProperties = new SchedulingProperties();
         schedulingProperties.setTimezone("Europe/Stockholm");
         return new PhtReportOrchestrationService(
@@ -82,7 +83,7 @@ class PhtReportOrchestrationServiceTest {
 
     @Test
     void dropsTheMessageWhenNoAgreementScopeResolves() {
-        when(agreementScopeRepository.findActiveMessageRecipientId("062021002635", "CAMT052B"))
+        when(agreementScopeRepository.findActiveMessageRecipientId("062021002635", ReportType.CAMT052B))
                 .thenReturn(Optional.empty());
 
         newService().process(phtMessage());
@@ -93,7 +94,7 @@ class PhtReportOrchestrationServiceTest {
 
     @Test
     void dropsTheMessageWhenTheRecipientRowIsMissing() {
-        when(agreementScopeRepository.findActiveMessageRecipientId("062021002635", "CAMT052B"))
+        when(agreementScopeRepository.findActiveMessageRecipientId("062021002635", ReportType.CAMT052B))
                 .thenReturn(Optional.of(999L));
         when(reportConfigRepository.findRecipientById(999L)).thenReturn(Optional.empty());
 
@@ -104,10 +105,10 @@ class PhtReportOrchestrationServiceTest {
 
     @Test
     void dropsTheMessageWhenNoActiveConfigResolves() {
-        when(agreementScopeRepository.findActiveMessageRecipientId("062021002635", "CAMT052B"))
+        when(agreementScopeRepository.findActiveMessageRecipientId("062021002635", ReportType.CAMT052B))
                 .thenReturn(Optional.of(999L));
         when(reportConfigRepository.findRecipientById(999L)).thenReturn(Optional.of(recipient()));
-        when(reportConfigRepository.findActiveByRecipientAndReportType(999L, "CAMT052B"))
+        when(reportConfigRepository.findActiveByRecipientAndReportType(999L, ReportType.CAMT052B))
                 .thenReturn(Optional.empty());
 
         newService().process(phtMessage());
@@ -117,10 +118,10 @@ class PhtReportOrchestrationServiceTest {
 
     @Test
     void deliversEveryAssembledEnvelopeThatHasPaymentTypesAndPassesTheAccountBalancesThrough() {
-        when(agreementScopeRepository.findActiveMessageRecipientId("062021002635", "CAMT052B"))
+        when(agreementScopeRepository.findActiveMessageRecipientId("062021002635", ReportType.CAMT052B))
                 .thenReturn(Optional.of(999L));
         when(reportConfigRepository.findRecipientById(999L)).thenReturn(Optional.of(recipient()));
-        when(reportConfigRepository.findActiveByRecipientAndReportType(999L, "CAMT052B"))
+        when(reportConfigRepository.findActiveByRecipientAndReportType(999L, ReportType.CAMT052B))
                 .thenReturn(Optional.of(config()));
         ReportConfigTree tree = new ReportConfigTree(config(), List.of());
         when(reportConfigTreeRepository.assembleTrees(List.of(config()))).thenReturn(List.of(tree));
@@ -145,10 +146,10 @@ class PhtReportOrchestrationServiceTest {
 
     @Test
     void derivesTheReportWindowFromTheMessagesOwnDateAndTimeRatherThanProcessingTime() {
-        when(agreementScopeRepository.findActiveMessageRecipientId("062021002635", "CAMT052B"))
+        when(agreementScopeRepository.findActiveMessageRecipientId("062021002635", ReportType.CAMT052B))
                 .thenReturn(Optional.of(999L));
         when(reportConfigRepository.findRecipientById(999L)).thenReturn(Optional.of(recipient()));
-        when(reportConfigRepository.findActiveByRecipientAndReportType(999L, "CAMT052B"))
+        when(reportConfigRepository.findActiveByRecipientAndReportType(999L, ReportType.CAMT052B))
                 .thenReturn(Optional.of(config()));
         ReportConfigTree tree = new ReportConfigTree(config(), List.of());
         when(reportConfigTreeRepository.assembleTrees(List.of(config()))).thenReturn(List.of(tree));
@@ -164,10 +165,10 @@ class PhtReportOrchestrationServiceTest {
 
     @Test
     void deliversEveryEnvelopeWhenAssemblyFansOutToMoreThanOne() {
-        when(agreementScopeRepository.findActiveMessageRecipientId("062021002635", "CAMT052B"))
+        when(agreementScopeRepository.findActiveMessageRecipientId("062021002635", ReportType.CAMT052B))
                 .thenReturn(Optional.of(999L));
         when(reportConfigRepository.findRecipientById(999L)).thenReturn(Optional.of(recipient()));
-        when(reportConfigRepository.findActiveByRecipientAndReportType(999L, "CAMT052B"))
+        when(reportConfigRepository.findActiveByRecipientAndReportType(999L, ReportType.CAMT052B))
                 .thenReturn(Optional.of(config()));
         ReportConfigTree tree = new ReportConfigTree(config(), List.of());
         when(reportConfigTreeRepository.assembleTrees(List.of(config()))).thenReturn(List.of(tree));
@@ -183,10 +184,10 @@ class PhtReportOrchestrationServiceTest {
 
     @Test
     void doesNotDeliverWhenNothingInTheAssembledTreeMatchedAnyBalance() {
-        when(agreementScopeRepository.findActiveMessageRecipientId("062021002635", "CAMT052B"))
+        when(agreementScopeRepository.findActiveMessageRecipientId("062021002635", ReportType.CAMT052B))
                 .thenReturn(Optional.of(999L));
         when(reportConfigRepository.findRecipientById(999L)).thenReturn(Optional.of(recipient()));
-        when(reportConfigRepository.findActiveByRecipientAndReportType(999L, "CAMT052B"))
+        when(reportConfigRepository.findActiveByRecipientAndReportType(999L, ReportType.CAMT052B))
                 .thenReturn(Optional.of(config()));
         ReportConfigTree tree = new ReportConfigTree(config(), List.of());
         when(reportConfigTreeRepository.assembleTrees(List.of(config()))).thenReturn(List.of(tree));
@@ -213,7 +214,7 @@ class PhtReportOrchestrationServiceTest {
 
     private static ReportConfigRow config() {
         return new ReportConfigRow(
-                1L, 12345678, "CAMT052B", "1.0", "SNAPSHOT", "desc", 999L, "IBAN", true, false, false, true);
+                1L, 12345678, ReportType.CAMT052B, "1.0", "SNAPSHOT", "desc", 999L, "IBAN", true, false, false, true);
     }
 
     private static ReportMessageEnvelope envelope(boolean withPaymentTypes) {
@@ -225,7 +226,7 @@ class PhtReportOrchestrationServiceTest {
                 withPaymentTypes ? List.of(new PaymentTypeAllocation("SWISH", List.of(), List.of())) : List.of();
         ReportMessage payload = new ReportMessage(
                 12345678,
-                "CAMT052B",
+                ReportType.CAMT052B,
                 "1.0",
                 NOW,
                 NOW,

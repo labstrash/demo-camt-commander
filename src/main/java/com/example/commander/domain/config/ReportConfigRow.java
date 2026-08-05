@@ -1,5 +1,7 @@
 package com.example.commander.domain.config;
 
+import com.example.commander.domain.message.ReportType;
+
 /**
  * Flat projection of a report configuration row from the database.
  *
@@ -26,7 +28,7 @@ package com.example.commander.domain.config;
 public record ReportConfigRow(
         long id,
         int configId,
-        String reportType,
+        ReportType reportType,
         String reportVersion,
         String reportFrequency,
         String description,

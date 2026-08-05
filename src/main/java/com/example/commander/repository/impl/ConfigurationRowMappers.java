@@ -6,6 +6,7 @@ import com.example.commander.domain.config.AliasAssignmentRow;
 import com.example.commander.domain.config.PaymentTypeAssignmentRow;
 import com.example.commander.domain.config.RecipientRow;
 import com.example.commander.domain.config.ReportConfigRow;
+import com.example.commander.domain.message.ReportType;
 import org.springframework.jdbc.core.RowMapper;
 
 /**
@@ -24,7 +25,7 @@ public final class ConfigurationRowMappers {
     public static final RowMapper<ReportConfigRow> REPORT_CONFIG = (rs, rowNum) -> new ReportConfigRow(
             rs.getLong("Id"),
             rs.getInt("ConfigId"),
-            rs.getString("ReportType"),
+            ReportType.valueOf(rs.getString("ReportType")),
             rs.getString("ReportVersion"),
             rs.getString("ReportFrequency"),
             rs.getString("Description"),

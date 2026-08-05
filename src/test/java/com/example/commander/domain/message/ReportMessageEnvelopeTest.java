@@ -61,7 +61,7 @@ class ReportMessageEnvelopeTest {
     private static ReportMessage payload(boolean bundled) {
         return ReportMessage.builder()
                 .configId(12345678)
-                .reportType("CAMT054C")
+                .reportType(ReportType.CAMT054C)
                 .reportVersion("1.0")
                 .windowStartUtc(Instant.parse("2026-07-01T00:00:00Z"))
                 .windowEndUtc(Instant.parse("2026-07-02T00:00:00Z"))

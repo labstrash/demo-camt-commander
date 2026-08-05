@@ -1,5 +1,6 @@
 package com.example.commander.repository;
 
+import com.example.commander.domain.message.ReportType;
 import java.util.Optional;
 
 /**
@@ -27,5 +28,5 @@ public interface AgreementScopeRepository {
      * @param reportType the report type the scope must match
      * @return the recipient ID if found, or empty if no match
      */
-    Optional<Long> findActiveMessageRecipientId(String engagementId, String reportType);
+    Optional<Long> findActiveMessageRecipientId(String engagementId, ReportType reportType);
 }

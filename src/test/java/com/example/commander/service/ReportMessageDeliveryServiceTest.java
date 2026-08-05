@@ -20,6 +20,7 @@ import com.example.commander.domain.message.Recipient;
 import com.example.commander.domain.message.RecipientType;
 import com.example.commander.domain.message.ReportMessage;
 import com.example.commander.domain.message.ReportMessageEnvelope;
+import com.example.commander.domain.message.ReportType;
 import com.example.commander.domain.message.TriggerType;
 import com.example.commander.repository.DeadLetterMessageRepository;
 import com.example.commander.repository.ReportCommandAuditRepository;
@@ -84,7 +85,7 @@ class ReportMessageDeliveryServiceTest {
                         item.payload().messageId(),
                         item.configId(),
                         item.scopeId(),
-                        "CAMT054C",
+                        ReportType.CAMT054C,
                         "{\"json\":true}",
                         TARGET_QUEUE,
                         5,
@@ -228,7 +229,7 @@ class ReportMessageDeliveryServiceTest {
                 List.of());
         ReportMessage payload = new ReportMessage(
                 12345678,
-                "CAMT054C",
+                ReportType.CAMT054C,
                 "1.0",
                 Instant.parse("2026-07-01T00:00:00Z"),
                 Instant.parse("2026-07-02T00:00:00Z"),

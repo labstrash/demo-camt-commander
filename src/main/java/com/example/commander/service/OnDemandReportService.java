@@ -12,6 +12,7 @@ import com.example.commander.domain.message.RecipientType;
 import com.example.commander.domain.message.ReportContext;
 import com.example.commander.domain.message.ReportMessageEnvelope;
 import com.example.commander.domain.message.ReportMessageIdGenerator;
+import com.example.commander.domain.message.ReportType;
 import com.example.commander.domain.message.TriggerType;
 import com.example.commander.domain.ondemand.OnDemandMessageOutcome;
 import com.example.commander.domain.ondemand.OnDemandReportRequest;
@@ -223,22 +224,12 @@ public class OnDemandReportService {
     /**
      * {@code message_id} is {@code NOT NULL} even for a rejection that never assembled a real
      * message — reuses {@link ReportMessageIdGenerator} with the resolved {@code configId}
-     * where available, or a sentinel when no config resolved at all ({@code
+     * where available, or {@code 0} when no config resolved at all ({@code
      * REJECTED_CONFIG_NOT_ELIGIBLE}).
-     *
-     * <p>Defensive fallback: {@link ReportMessageIdGenerator#generateMessageId} requires
-     * {@code reportType} to be at least 6 characters — a real constraint on the send-path's
-     * known report types, but a {@code REJECTED_CONFIG_NOT_ELIGIBLE} row can be reached before
-     * the caller-supplied {@code reportType} has been validated against anything. A malformed
-     * input shouldn't crash the very rejection-recording path that's reporting it.
      */
-    private String rejectionMessageId(ReportConfigRow config, String requestedReportType) {
+    private String rejectionMessageId(ReportConfigRow config, ReportType requestedReportType) {
         long reportId = config != null ? config.configId() : 0;
-        try {
-            return messageIdGenerator.generateMessageId(reportId, requestedReportType);
-        } catch (IllegalArgumentException _) {
-            return "ONDEMAND-REJECTED-" + UUID.randomUUID();
-        }
+        return messageIdGenerator.generateMessageId(reportId, requestedReportType);
     }
 
     /**

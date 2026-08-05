@@ -2,6 +2,7 @@ package com.example.commander.config;
 
 import static org.assertj.core.api.Assertions.*;
 
+import com.example.commander.domain.message.ReportType;
 import com.example.commander.domain.report.ReportFrequency;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,7 +34,7 @@ class SchedulingPropertiesTest {
         schedule.setFrequency("EVERY_30_MIN");
         schedule.setCron("0 */30 * ? * *");
         schedule.setWindowMinutes(30);
-        schedule.setReportTypes(List.of("REPORT_TYPE_1"));
+        schedule.setReportTypes(List.of(ReportType.CAMT054C));
 
         properties.setSchedules(List.of(schedule));
         properties.validate();
@@ -46,7 +47,7 @@ class SchedulingPropertiesTest {
         SchedulingProperties.Schedule schedule = new SchedulingProperties.Schedule();
         schedule.setFrequency("FOUR_TIMES_PER_DAY");
         schedule.setBoundaries("09:00,13:00,18:00,21:00");
-        schedule.setReportTypes(List.of("REPORT_TYPE_1"));
+        schedule.setReportTypes(List.of(ReportType.CAMT054C));
 
         properties.setSchedules(List.of(schedule));
         properties.validate();
@@ -58,7 +59,7 @@ class SchedulingPropertiesTest {
     void shouldThrowWhenScheduleMissingCronAndBoundaries() {
         SchedulingProperties.Schedule schedule = new SchedulingProperties.Schedule();
         schedule.setFrequency("EVERY_30_MIN");
-        schedule.setReportTypes(List.of("REPORT_TYPE_1"));
+        schedule.setReportTypes(List.of(ReportType.CAMT054C));
 
         properties.setSchedules(List.of(schedule));
 
@@ -73,7 +74,7 @@ class SchedulingPropertiesTest {
         schedule.setFrequency("EVERY_30_MIN");
         schedule.setCron("0 */30 * ? * *");
         schedule.setBoundaries("09:00,13:00");
-        schedule.setReportTypes(List.of("REPORT_TYPE_1"));
+        schedule.setReportTypes(List.of(ReportType.CAMT054C));
 
         properties.setSchedules(List.of(schedule));
 
@@ -101,7 +102,7 @@ class SchedulingPropertiesTest {
         SchedulingProperties.Schedule schedule = new SchedulingProperties.Schedule();
         schedule.setFrequency("EVERY_30_MIN");
         schedule.setCron("0 */30 * ? * *");
-        schedule.setReportTypes(List.of("REPORT_TYPE_1"));
+        schedule.setReportTypes(List.of(ReportType.CAMT054C));
 
         properties.setSchedules(List.of(schedule));
 
@@ -116,7 +117,7 @@ class SchedulingPropertiesTest {
         schedule.setFrequency("FOUR_TIMES_PER_DAY");
         schedule.setBoundaries("09:00,13:00,18:00,21:00");
         schedule.setWindowMinutes(30);
-        schedule.setReportTypes(List.of("REPORT_TYPE_1"));
+        schedule.setReportTypes(List.of(ReportType.CAMT054C));
 
         properties.setSchedules(List.of(schedule));
 
@@ -130,7 +131,7 @@ class SchedulingPropertiesTest {
         SchedulingProperties.Schedule schedule = new SchedulingProperties.Schedule();
         schedule.setFrequency("FOUR_TIMES_PER_DAY");
         schedule.setBoundaries("13:00,09:00,18:00,21:00");
-        schedule.setReportTypes(List.of("REPORT_TYPE_1"));
+        schedule.setReportTypes(List.of(ReportType.CAMT054C));
 
         properties.setSchedules(List.of(schedule));
 
@@ -144,7 +145,7 @@ class SchedulingPropertiesTest {
         SchedulingProperties.Schedule schedule = new SchedulingProperties.Schedule();
         schedule.setFrequency("ONE_TIME_PER_DAY");
         schedule.setBoundaries("00:00");
-        schedule.setReportTypes(List.of("REPORT_TYPE_1"));
+        schedule.setReportTypes(List.of(ReportType.CAMT054C));
 
         properties.setSchedules(List.of(schedule));
 
@@ -158,12 +159,12 @@ class SchedulingPropertiesTest {
         SchedulingProperties.Schedule schedule1 = new SchedulingProperties.Schedule();
         schedule1.setFrequency("DAILY");
         schedule1.setCron("0 0 12 * * ?");
-        schedule1.setReportTypes(List.of("REPORT_TYPE_1"));
+        schedule1.setReportTypes(List.of(ReportType.CAMT054C));
 
         SchedulingProperties.Schedule schedule2 = new SchedulingProperties.Schedule();
         schedule2.setFrequency("DAILY");
         schedule2.setCron("0 0 12 * * ?");
-        schedule2.setReportTypes(List.of("REPORT_TYPE_1"));
+        schedule2.setReportTypes(List.of(ReportType.CAMT054C));
 
         properties.setSchedules(List.of(schedule1, schedule2));
 
@@ -177,13 +178,13 @@ class SchedulingPropertiesTest {
         SchedulingProperties.Schedule schedule1 = new SchedulingProperties.Schedule();
         schedule1.setFrequency("DAILY");
         schedule1.setCron("0 0 12 * * ?");
-        schedule1.setReportTypes(List.of("REPORT_TYPE_1"));
+        schedule1.setReportTypes(List.of(ReportType.CAMT054C));
 
         SchedulingProperties.Schedule schedule2 = new SchedulingProperties.Schedule();
         schedule2.setFrequency("EVERY_30_MIN");
         schedule2.setCron("0 */30 * ? * *");
         schedule2.setWindowMinutes(30);
-        schedule2.setReportTypes(List.of("REPORT_TYPE_1"));
+        schedule2.setReportTypes(List.of(ReportType.CAMT054C));
 
         properties.setSchedules(List.of(schedule1, schedule2));
         properties.validate();

@@ -8,6 +8,7 @@ import com.example.commander.domain.message.Recipient;
 import com.example.commander.domain.message.RecipientType;
 import com.example.commander.domain.message.ReportContext;
 import com.example.commander.domain.message.ReportMessageEnvelope;
+import com.example.commander.domain.message.ReportType;
 import com.example.commander.domain.message.TriggerType;
 import com.example.commander.domain.report.ReportWindow;
 import com.example.commander.repository.ReportConfigTreeRepository;
@@ -79,7 +80,7 @@ public class ReportPipelineItemReader extends AbstractItemStreamItemReader<Repor
     private final ReportMessageAssembler fanOutAssemblyService;
     private final int pageSize;
 
-    private final String reportType;
+    private final ReportType reportType;
     private final String reportFrequency;
     private final Instant windowStartUtc;
     private final Instant windowEndUtc;
@@ -100,7 +101,7 @@ public class ReportPipelineItemReader extends AbstractItemStreamItemReader<Repor
         this.repository = repository;
         this.fanOutAssemblyService = reportMessageAssembler;
         this.pageSize = readLayerProperties.getPageSize();
-        this.reportType = reportType;
+        this.reportType = ReportType.valueOf(reportType);
         this.reportFrequency = reportFrequency;
         this.windowStartUtc = windowStartUtc;
         this.windowEndUtc = windowEndUtc;

@@ -9,6 +9,7 @@ import com.example.commander.domain.config.AliasAssignmentRow;
 import com.example.commander.domain.config.PaymentTypeAssignmentRow;
 import com.example.commander.domain.config.RecipientRow;
 import com.example.commander.domain.config.ReportConfigRow;
+import com.example.commander.domain.message.ReportType;
 import java.sql.ResultSet;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -50,7 +51,7 @@ class ConfigurationRowMappersTest {
                 .isEqualTo(new ReportConfigRow(
                         1L,
                         12345678,
-                        "CAMT054C",
+                        ReportType.CAMT054C,
                         "1.0",
                         "ONE_TIME_PER_DAY",
                         "desc",

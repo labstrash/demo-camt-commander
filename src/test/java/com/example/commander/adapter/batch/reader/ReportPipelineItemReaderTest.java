@@ -13,6 +13,7 @@ import com.example.commander.domain.config.ReportConfigRow;
 import com.example.commander.domain.config.ReportConfigTree;
 import com.example.commander.domain.message.ReportMessageEnvelope;
 import com.example.commander.domain.message.ReportMessageIdGenerator;
+import com.example.commander.domain.message.ReportType;
 import com.example.commander.repository.ReportConfigTreeRepository;
 import com.example.commander.service.AllocationMapper;
 import com.example.commander.service.BundledGroupingStrategy;
@@ -43,7 +44,7 @@ import org.springframework.batch.infrastructure.item.ExecutionContext;
 @ExtendWith(MockitoExtension.class)
 class ReportPipelineItemReaderTest {
 
-    private static final String REPORT_TYPE = "CAMT054C";
+    private static final ReportType REPORT_TYPE = ReportType.CAMT054C;
     private static final String REPORT_FREQUENCY = "DAILY";
     private static final Instant WINDOW_START = Instant.parse("2026-07-01T00:00:00Z");
     private static final Instant WINDOW_END = Instant.parse("2026-07-02T00:00:00Z");
@@ -64,7 +65,13 @@ class ReportPipelineItemReaderTest {
         ReportConfigReadProperties properties = new ReportConfigReadProperties();
         properties.setPageSize(pageSize);
         return new ReportPipelineItemReader(
-                repository, fanOutAssemblyService, properties, REPORT_TYPE, REPORT_FREQUENCY, WINDOW_START, WINDOW_END);
+                repository,
+                fanOutAssemblyService,
+                properties,
+                REPORT_TYPE.name(),
+                REPORT_FREQUENCY,
+                WINDOW_START,
+                WINDOW_END);
     }
 
     @Test

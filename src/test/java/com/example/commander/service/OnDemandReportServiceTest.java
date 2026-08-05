@@ -17,6 +17,7 @@ import com.example.commander.domain.message.Recipient;
 import com.example.commander.domain.message.RecipientType;
 import com.example.commander.domain.message.ReportMessage;
 import com.example.commander.domain.message.ReportMessageEnvelope;
+import com.example.commander.domain.message.ReportType;
 import com.example.commander.domain.message.TriggerType;
 import com.example.commander.domain.ondemand.OnDemandReportRequest;
 import com.example.commander.domain.ondemand.OnDemandReportResult;
@@ -58,7 +59,7 @@ class OnDemandReportServiceTest {
 
     private OnDemandReportService newService() {
         MqProperties mqProperties = new MqProperties();
-        mqProperties.setQueues(java.util.Map.of("CAMT054C", "CAMT.054C.QUEUE"));
+        mqProperties.setQueues(java.util.Map.of(ReportType.CAMT054C, "CAMT.054C.QUEUE"));
         Clock clock = Clock.fixed(NOW, ZoneOffset.UTC);
         return new OnDemandReportService(
                 reportConfigRepository,
@@ -92,7 +93,7 @@ class OnDemandReportServiceTest {
     void rejectsWhenConfigNotFound() {
         when(reportConfigRepository.findRecipientByTypeAndValue("BIC", "SOMEBIC"))
                 .thenReturn(Optional.of(recipient()));
-        when(reportConfigRepository.findActiveByRecipientAndReportType(999L, "CAMT054C"))
+        when(reportConfigRepository.findActiveByRecipientAndReportType(999L, ReportType.CAMT054C))
                 .thenReturn(Optional.empty());
 
         OnDemandReportResult result = newService().trigger(request());
@@ -105,11 +106,11 @@ class OnDemandReportServiceTest {
     void rejectsWhenWindowEndsAfterNow() {
         when(reportConfigRepository.findRecipientByTypeAndValue("BIC", "SOMEBIC"))
                 .thenReturn(Optional.of(recipient()));
-        when(reportConfigRepository.findActiveByRecipientAndReportType(999L, "CAMT054C"))
+        when(reportConfigRepository.findActiveByRecipientAndReportType(999L, ReportType.CAMT054C))
                 .thenReturn(Optional.of(config()));
 
         OnDemandReportRequest futureWindowRequest = new OnDemandReportRequest(
-                "BIC", "SOMEBIC", "CAMT054C", "1.0", NOW.minusSeconds(60), NOW.plusSeconds(3600), "alice");
+                "BIC", "SOMEBIC", ReportType.CAMT054C, "1.0", NOW.minusSeconds(60), NOW.plusSeconds(3600), "alice");
 
         OnDemandReportResult result = newService().trigger(futureWindowRequest);
 
@@ -122,11 +123,11 @@ class OnDemandReportServiceTest {
     void rejectsWhenWindowStartIsAfterEnd() {
         when(reportConfigRepository.findRecipientByTypeAndValue("BIC", "SOMEBIC"))
                 .thenReturn(Optional.of(recipient()));
-        when(reportConfigRepository.findActiveByRecipientAndReportType(999L, "CAMT054C"))
+        when(reportConfigRepository.findActiveByRecipientAndReportType(999L, ReportType.CAMT054C))
                 .thenReturn(Optional.of(config()));
 
-        OnDemandReportRequest invalidRequest =
-                new OnDemandReportRequest("BIC", "SOMEBIC", "CAMT054C", "1.0", WINDOW_END, WINDOW_START, "alice");
+        OnDemandReportRequest invalidRequest = new OnDemandReportRequest(
+                "BIC", "SOMEBIC", ReportType.CAMT054C, "1.0", WINDOW_END, WINDOW_START, "alice");
 
         OnDemandReportResult result = newService().trigger(invalidRequest);
 
@@ -138,7 +139,7 @@ class OnDemandReportServiceTest {
     void successfulSingleMessageReturnsSent() {
         when(reportConfigRepository.findRecipientByTypeAndValue("BIC", "SOMEBIC"))
                 .thenReturn(Optional.of(recipient()));
-        when(reportConfigRepository.findActiveByRecipientAndReportType(999L, "CAMT054C"))
+        when(reportConfigRepository.findActiveByRecipientAndReportType(999L, ReportType.CAMT054C))
                 .thenReturn(Optional.of(config()));
         ReportConfigTree tree = new ReportConfigTree(config(), List.of());
         when(reportConfigTreeRepository.assembleTrees(List.of(config()))).thenReturn(List.of(tree));
@@ -160,7 +161,7 @@ class OnDemandReportServiceTest {
     void everyMessageAlreadySentMakesTheOverallStatusSkippedDuplicate() {
         when(reportConfigRepository.findRecipientByTypeAndValue("BIC", "SOMEBIC"))
                 .thenReturn(Optional.of(recipient()));
-        when(reportConfigRepository.findActiveByRecipientAndReportType(999L, "CAMT054C"))
+        when(reportConfigRepository.findActiveByRecipientAndReportType(999L, ReportType.CAMT054C))
                 .thenReturn(Optional.of(config()));
         ReportConfigTree tree = new ReportConfigTree(config(), List.of());
         when(reportConfigTreeRepository.assembleTrees(List.of(config()))).thenReturn(List.of(tree));
@@ -179,7 +180,7 @@ class OnDemandReportServiceTest {
     void anyFailedMessageMakesTheOverallStatusFailed() {
         when(reportConfigRepository.findRecipientByTypeAndValue("BIC", "SOMEBIC"))
                 .thenReturn(Optional.of(recipient()));
-        when(reportConfigRepository.findActiveByRecipientAndReportType(999L, "CAMT054C"))
+        when(reportConfigRepository.findActiveByRecipientAndReportType(999L, ReportType.CAMT054C))
                 .thenReturn(Optional.of(config()));
         ReportConfigTree tree = new ReportConfigTree(config(), List.of());
         when(reportConfigTreeRepository.assembleTrees(List.of(config()))).thenReturn(List.of(tree));
@@ -204,7 +205,8 @@ class OnDemandReportServiceTest {
     }
 
     private static OnDemandReportRequest request() {
-        return new OnDemandReportRequest("BIC", "SOMEBIC", "CAMT054C", "1.0", WINDOW_START, WINDOW_END, "alice");
+        return new OnDemandReportRequest(
+                "BIC", "SOMEBIC", ReportType.CAMT054C, "1.0", WINDOW_START, WINDOW_END, "alice");
     }
 
     private static RecipientRow recipient() {
@@ -213,13 +215,13 @@ class OnDemandReportServiceTest {
 
     private static ReportConfigRow config() {
         return new ReportConfigRow(
-                1L, 12345678, "CAMT054C", "1.0", "DAILY", "desc", 999L, "IBAN", true, false, false, true);
+                1L, 12345678, ReportType.CAMT054C, "1.0", "DAILY", "desc", 999L, "IBAN", true, false, false, true);
     }
 
     private static ReportMessageEnvelope envelope() {
         ReportMessage payload = new ReportMessage(
                 12345678,
-                "CAMT054C",
+                ReportType.CAMT054C,
                 "1.0",
                 WINDOW_START,
                 WINDOW_END,

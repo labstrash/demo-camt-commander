@@ -1,5 +1,6 @@
 package com.example.commander.domain.deadletter;
 
+import com.example.commander.domain.message.ReportType;
 import java.time.Instant;
 
 /**
@@ -28,7 +29,7 @@ public record DeadLetterMessage(
         String messageId,
         long reportConfigId,
         Long agreementScopeId,
-        String reportType,
+        ReportType reportType,
         String messagePayload,
         String targetQueue,
         int retryCount,
@@ -58,7 +59,7 @@ public record DeadLetterMessage(
             String messageId,
             long reportConfigId,
             Long agreementScopeId,
-            String reportType,
+            ReportType reportType,
             String messagePayload,
             String targetQueue,
             int maxRetries,
