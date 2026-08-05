@@ -23,7 +23,7 @@ class ReportMessageTest {
     private static final Recipient RECIPIENT = new Recipient(999L, RecipientType.BIC, "SOMEBIC", "Some Recipient");
 
     @Test
-    void rejectsNonPositiveConfigId() {
+    void rejectsNonPositiveReportId() {
         assertThatThrownBy(() -> new ReportMessage(
                         0,
                         ReportType.CAMT054C,
@@ -31,6 +31,9 @@ class ReportMessageTest {
                         START,
                         END,
                         true,
+                        "IBAN",
+                        false,
+                        false,
                         TriggerType.SCHEDULED,
                         RECIPIENT,
                         List.of(),
@@ -38,7 +41,7 @@ class ReportMessageTest {
                         "corr-id",
                         "msg-id"))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessageContaining("configId must be positive");
+                .hasMessageContaining("reportId must be positive");
     }
 
     @Test
@@ -58,19 +61,19 @@ class ReportMessageTest {
     }
 
     @Test
-    void rejectsNullReportType() {
+    void rejectsNullType() {
         assertThatThrownBy(
                         () -> canonical(null, "1.0", START, END, TriggerType.SCHEDULED, RECIPIENT, "corr-id", "msg-id"))
                 .isInstanceOf(NullPointerException.class)
-                .hasMessageContaining("reportType");
+                .hasMessageContaining("type");
     }
 
     @Test
-    void rejectsNullReportVersion() {
+    void rejectsNullVersion() {
         assertThatThrownBy(() -> canonical(
                         ReportType.CAMT054C, null, START, END, TriggerType.SCHEDULED, RECIPIENT, "corr-id", "msg-id"))
                 .isInstanceOf(NullPointerException.class)
-                .hasMessageContaining("reportVersion");
+                .hasMessageContaining("version");
     }
 
     @Test
@@ -130,6 +133,9 @@ class ReportMessageTest {
                 START,
                 END,
                 true,
+                "IBAN",
+                false,
+                false,
                 TriggerType.SCHEDULED,
                 RECIPIENT,
                 null,
@@ -153,6 +159,9 @@ class ReportMessageTest {
                 START,
                 END,
                 true,
+                "IBAN",
+                false,
+                false,
                 TriggerType.SCHEDULED,
                 RECIPIENT,
                 mutableSource,
@@ -183,6 +192,9 @@ class ReportMessageTest {
                 START,
                 END,
                 true,
+                "IBAN",
+                false,
+                false,
                 TriggerType.SCHEDULED,
                 RECIPIENT,
                 List.of(swish, bg),
@@ -200,11 +212,11 @@ class ReportMessageTest {
     void builderRequiresEveryMandatoryFieldBeforeBuilding() {
         assertThatThrownBy(() -> ReportMessage.builder().build())
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("configId is required");
+                .hasMessageContaining("reportId is required");
 
-        assertThatThrownBy(() -> validBuilder().reportType(null).build())
+        assertThatThrownBy(() -> validBuilder().type(null).build())
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("reportType is required");
+                .hasMessageContaining("type is required");
 
         assertThatThrownBy(() -> validBuilder().correlationId(null).build())
                 .isInstanceOf(IllegalStateException.class)
@@ -221,8 +233,8 @@ class ReportMessageTest {
     }
 
     private static ReportMessage canonical(
-            ReportType reportType,
-            String reportVersion,
+            ReportType type,
+            String version,
             Instant start,
             Instant end,
             TriggerType triggerType,
@@ -231,11 +243,14 @@ class ReportMessageTest {
             String messageId) {
         return new ReportMessage(
                 1,
-                reportType,
-                reportVersion,
+                type,
+                version,
                 start,
                 end,
                 true,
+                "IBAN",
+                false,
+                false,
                 triggerType,
                 recipient,
                 List.of(),
@@ -246,12 +261,15 @@ class ReportMessageTest {
 
     private static ReportMessage.Builder validBuilder() {
         return ReportMessage.builder()
-                .configId(12345678)
-                .reportType(ReportType.CAMT054C)
-                .reportVersion("1.0")
+                .reportId(12345678)
+                .type(ReportType.CAMT054C)
+                .version("1.0")
                 .windowStartUtc(START)
                 .windowEndUtc(END)
                 .bundled(true)
+                .accountFormat("IBAN")
+                .isPaginated(false)
+                .isEmptyReportAllowed(false)
                 .triggerType(TriggerType.SCHEDULED)
                 .recipient(RECIPIENT)
                 .paymentTypeGroups(List.of())

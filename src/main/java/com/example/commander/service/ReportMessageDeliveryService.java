@@ -163,7 +163,7 @@ public class ReportMessageDeliveryService {
                 item.payload().messageId(),
                 item.configId(),
                 item.scopeId(),
-                item.payload().reportType(),
+                item.payload().type(),
                 json,
                 targetQueue,
                 deadLetterMaxRetries,
@@ -189,10 +189,10 @@ public class ReportMessageDeliveryService {
                 .messageId(payload.messageId())
                 .correlationId(payload.correlationId())
                 .reportConfigId(item.configId())
-                .configId(String.valueOf(payload.configId()))
+                .configId(String.valueOf(payload.reportId()))
                 .agreementScopeId(item.scopeId())
-                .reportType(payload.reportType())
-                .reportVersion(payload.reportVersion())
+                .reportType(payload.type())
+                .reportVersion(payload.version())
                 .reportFrequency(deliveryContext.reportFrequency())
                 .triggerType(payload.triggerType())
                 .windowStartUtc(payload.startDateTimeUtc())

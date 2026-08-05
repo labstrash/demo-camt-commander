@@ -46,27 +46,18 @@ public class RecipientResolvingReportMessageProcessor
         Optional<RecipientRow> recipient = repository.findRecipientById(recipientId);
         if (recipient.isEmpty()) {
             log.warn(
-                    "Filtering message: unresolvable recipient. reportConfigId={}, configId={}, recipientId={}",
+                    "Filtering message: unresolvable recipient. reportConfigId={}, reportId={}, recipientId={}",
                     item.configId(),
-                    payload.configId(),
+                    payload.reportId(),
                     recipientId);
             return null;
         }
 
         RecipientRow row = recipient.get();
-        ReportMessage resolved = new ReportMessage(
-                payload.configId(),
-                payload.reportType(),
-                payload.reportVersion(),
-                payload.startDateTimeUtc(),
-                payload.endDateTimeUtc(),
-                payload.bundled(),
-                payload.triggerType(),
-                new Recipient(row.id(), RecipientType.valueOf(row.type()), row.value(), row.name()),
-                payload.paymentTypes(),
-                payload.requestorName(),
-                payload.correlationId(),
-                payload.messageId());
+        ReportMessage resolved = ReportMessage.builder()
+                .from(payload)
+                .recipient(new Recipient(row.id(), RecipientType.valueOf(row.type()), row.value(), row.name()))
+                .build();
 
         return new ReportMessageEnvelope(resolved, item.configId(), item.scopeId());
     }

@@ -60,12 +60,15 @@ class ReportMessageEnvelopeTest {
 
     private static ReportMessage payload(boolean bundled) {
         return ReportMessage.builder()
-                .configId(12345678)
-                .reportType(ReportType.CAMT054C)
-                .reportVersion("1.0")
+                .reportId(12345678)
+                .type(ReportType.CAMT054C)
+                .version("1.0")
                 .windowStartUtc(Instant.parse("2026-07-01T00:00:00Z"))
                 .windowEndUtc(Instant.parse("2026-07-02T00:00:00Z"))
                 .bundled(bundled)
+                .accountFormat("IBAN")
+                .isPaginated(false)
+                .isEmptyReportAllowed(false)
                 .triggerType(TriggerType.SCHEDULED)
                 .recipient(new Recipient(999L, RecipientType.BIC, "SOMEBIC", "Some Recipient"))
                 .paymentTypeGroups(List.of())

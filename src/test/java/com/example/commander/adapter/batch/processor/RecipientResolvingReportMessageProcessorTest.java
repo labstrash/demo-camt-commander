@@ -40,8 +40,8 @@ class RecipientResolvingReportMessageProcessorTest {
         // messageId is non-deterministic — must be threaded forward unchanged, never regenerated
         assertThat(result.payload().messageId()).isEqualTo(item.payload().messageId());
         assertThat(result.payload().correlationId()).isEqualTo(item.payload().correlationId());
-        assertThat(result.payload().configId()).isEqualTo(item.payload().configId());
-        assertThat(result.payload().reportType()).isEqualTo(item.payload().reportType());
+        assertThat(result.payload().reportId()).isEqualTo(item.payload().reportId());
+        assertThat(result.payload().type()).isEqualTo(item.payload().type());
         assertThat(result.payload().paymentTypes()).isEqualTo(item.payload().paymentTypes());
     }
 
@@ -62,6 +62,9 @@ class RecipientResolvingReportMessageProcessorTest {
                 "1.0",
                 Instant.parse("2026-07-01T00:00:00Z"),
                 Instant.parse("2026-07-02T00:00:00Z"),
+                true,
+                "IBAN",
+                true,
                 true,
                 TriggerType.SCHEDULED,
                 new Recipient(999L, RecipientType.ORIGINATOR, "UNRESOLVED", "UNRESOLVED"),

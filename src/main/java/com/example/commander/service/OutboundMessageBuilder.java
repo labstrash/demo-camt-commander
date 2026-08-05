@@ -60,12 +60,15 @@ public class OutboundMessageBuilder {
 
         // Build payload
         ReportMessage payload = ReportMessage.builder()
-                .configId(config.configId())
-                .reportType(config.reportType())
-                .reportVersion(reportContext.reportVersion())
+                .reportId(config.configId())
+                .type(config.reportType())
+                .version(reportContext.reportVersion())
                 .windowStartUtc(reportContext.window().windowStartUtc())
                 .windowEndUtc(reportContext.window().windowEndUtc())
                 .bundled(scopeId == null)
+                .accountFormat(config.accountFormat())
+                .isPaginated(config.isPaginated())
+                .isEmptyReportAllowed(config.isEmptyReportAllowed())
                 .triggerType(reportContext.triggerType())
                 .recipient(context.recipient())
                 .paymentTypeGroups(paymentTypeGroups)

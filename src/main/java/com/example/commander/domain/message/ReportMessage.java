@@ -20,12 +20,15 @@ import java.util.Objects;
  * </ul>
  */
 public record ReportMessage(
-        int configId,
-        ReportType reportType,
-        String reportVersion,
+        int reportId,
+        ReportType type,
+        String version,
         Instant startDateTimeUtc,
         Instant endDateTimeUtc,
         boolean bundled,
+        String accountFormat,
+        boolean isPaginated,
+        boolean isEmptyReportAllowed,
         TriggerType triggerType,
         Recipient recipient,
         List<PaymentTypeAllocation> paymentTypes,
@@ -33,11 +36,12 @@ public record ReportMessage(
         String correlationId,
         String messageId) {
     public ReportMessage {
-        validateConfigId(configId);
-        Objects.requireNonNull(reportType, "reportType cannot be null");
-        Objects.requireNonNull(reportVersion, "reportVersion cannot be null");
+        validateReportId(reportId);
+        Objects.requireNonNull(type, "type cannot be null");
+        Objects.requireNonNull(version, "version cannot be null");
         Objects.requireNonNull(startDateTimeUtc, "startDateTimeUtc cannot be null");
         Objects.requireNonNull(endDateTimeUtc, "endDateTimeUtc cannot be null");
+        Objects.requireNonNull(accountFormat, "accountFormat cannot be null");
         Objects.requireNonNull(triggerType, "triggerType cannot be null");
         Objects.requireNonNull(recipient, "recipient cannot be null");
         Objects.requireNonNull(correlationId, "correlationId cannot be null");
@@ -50,9 +54,9 @@ public record ReportMessage(
         }
     }
 
-    private static void validateConfigId(int configId) {
-        if (configId <= 0) {
-            throw new IllegalArgumentException("configId must be positive");
+    private static void validateReportId(int reportId) {
+        if (reportId <= 0) {
+            throw new IllegalArgumentException("reportId must be positive");
         }
     }
 
@@ -101,12 +105,15 @@ public record ReportMessage(
     }
 
     public static class Builder {
-        private Integer configId;
-        private ReportType reportType;
-        private String reportVersion;
+        private Integer reportId;
+        private ReportType type;
+        private String version;
         private Instant windowStartUtc;
         private Instant windowEndUtc;
         private Boolean bundled;
+        private String accountFormat;
+        private Boolean isPaginated;
+        private Boolean isEmptyReportAllowed;
         private TriggerType triggerType;
         private Recipient recipient;
         private List<PaymentTypeAllocation> paymentTypeAllocations;
@@ -116,18 +123,18 @@ public record ReportMessage(
 
         private Builder() {}
 
-        public Builder configId(int configId) {
-            this.configId = configId;
+        public Builder reportId(int reportId) {
+            this.reportId = reportId;
             return this;
         }
 
-        public Builder reportType(ReportType reportType) {
-            this.reportType = reportType;
+        public Builder type(ReportType type) {
+            this.type = type;
             return this;
         }
 
-        public Builder reportVersion(String reportVersion) {
-            this.reportVersion = reportVersion;
+        public Builder version(String version) {
+            this.version = version;
             return this;
         }
 
@@ -143,6 +150,21 @@ public record ReportMessage(
 
         public Builder bundled(boolean bundled) {
             this.bundled = bundled;
+            return this;
+        }
+
+        public Builder accountFormat(String accountFormat) {
+            this.accountFormat = accountFormat;
+            return this;
+        }
+
+        public Builder isPaginated(boolean isPaginated) {
+            this.isPaginated = isPaginated;
+            return this;
+        }
+
+        public Builder isEmptyReportAllowed(boolean isEmptyReportAllowed) {
+            this.isEmptyReportAllowed = isEmptyReportAllowed;
             return this;
         }
 
@@ -177,14 +199,14 @@ public record ReportMessage(
         }
 
         public ReportMessage build() {
-            if (configId == null) {
-                throw new IllegalStateException("configId is required");
+            if (reportId == null) {
+                throw new IllegalStateException("reportId is required");
             }
-            if (reportType == null) {
-                throw new IllegalStateException("reportType is required");
+            if (type == null) {
+                throw new IllegalStateException("type is required");
             }
-            if (reportVersion == null) {
-                throw new IllegalStateException("reportVersion is required");
+            if (version == null) {
+                throw new IllegalStateException("version is required");
             }
             if (windowStartUtc == null) {
                 throw new IllegalStateException("startDateTimeUtc is required");
@@ -194,6 +216,15 @@ public record ReportMessage(
             }
             if (bundled == null) {
                 throw new IllegalStateException("bundled is required");
+            }
+            if (accountFormat == null) {
+                throw new IllegalStateException("accountFormat is required");
+            }
+            if (isPaginated == null) {
+                throw new IllegalStateException("isPaginated is required");
+            }
+            if (isEmptyReportAllowed == null) {
+                throw new IllegalStateException("isEmptyReportAllowed is required");
             }
             if (triggerType == null) {
                 throw new IllegalStateException("triggerType is required");
@@ -209,12 +240,15 @@ public record ReportMessage(
             }
 
             return new ReportMessage(
-                    configId,
-                    reportType,
-                    reportVersion,
+                    reportId,
+                    type,
+                    version,
                     windowStartUtc,
                     windowEndUtc,
                     bundled,
+                    accountFormat,
+                    isPaginated,
+                    isEmptyReportAllowed,
                     triggerType,
                     recipient,
                     paymentTypeAllocations,
@@ -224,12 +258,15 @@ public record ReportMessage(
         }
 
         public Builder from(ReportMessage existing) {
-            this.configId = existing.configId();
-            this.reportType = existing.reportType();
-            this.reportVersion = existing.reportVersion();
+            this.reportId = existing.reportId();
+            this.type = existing.type();
+            this.version = existing.version();
             this.windowStartUtc = existing.startDateTimeUtc();
             this.windowEndUtc = existing.endDateTimeUtc();
             this.bundled = existing.bundled();
+            this.accountFormat = existing.accountFormat();
+            this.isPaginated = existing.isPaginated();
+            this.isEmptyReportAllowed = existing.isEmptyReportAllowed();
             this.triggerType = existing.triggerType();
             this.recipient = existing.recipient();
             this.paymentTypeAllocations = existing.paymentTypes();
