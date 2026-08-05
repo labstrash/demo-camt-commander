@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Positive;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -135,8 +135,8 @@ public class MqResilienceProperties {
      */
     @PostConstruct
     void flattenAndValidateTiers() {
-        Map<ReportType, RetryBackoff> flattened = new HashMap<>();
-        Map<ReportType, Integer> tierIndexByReportType = new HashMap<>();
+        Map<ReportType, RetryBackoff> flattened = new EnumMap<>(ReportType.class);
+        Map<ReportType, Integer> tierIndexByReportType = new EnumMap<>(ReportType.class);
 
         for (int tierIndex = 0; tierIndex < deadLetterRetryBackoffTiers.size(); tierIndex++) {
             RetryBackoffTier tier = deadLetterRetryBackoffTiers.get(tierIndex);

@@ -5,6 +5,10 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
@@ -14,6 +18,8 @@ import com.example.commander.domain.config.AgreementScopeRow;
 import com.example.commander.domain.config.AliasAssignmentRow;
 import com.example.commander.domain.config.PaymentTypeAssignmentRow;
 import com.example.commander.domain.config.ReportConfigRow;
+import com.example.commander.domain.config.ReportConfigTree;
+import com.example.commander.domain.message.ReportType;
 import java.util.List;
 import java.util.stream.LongStream;
 import javax.sql.DataSource;
@@ -39,6 +45,16 @@ import org.springframework.jdbc.core.RowMapper;
  * and fully unit-testable — is the empty-input short-circuiting (no query issued at all
  * for an empty ID collection) and the level 1→2 safe-size guard that protects against
  * exceeding SQL Server's 2,100-parameter cap.
+ *
+ * <p>{@code findConfigPage} and the non-empty path of {@code findScopesByConfigIds} run
+ * through an internally-scoped {@code NamedParameterJdbcTemplate} built off the injected
+ * {@link DataSource} (see the constructor) rather than the injected {@link JdbcTemplate}
+ * mock — there's no seam to intercept, so their real query execution is likewise an
+ * integration-test concern, not a unit-test one. {@link #assembleTrees}'s own
+ * orchestration logic (staged scopes → assignments → accounts/aliases, ID chaining,
+ * error propagation) is still fully unit-testable by spying on the repository and
+ * stubbing its own public stage methods, bypassing JDBC entirely — see {@code
+ * assembleTreesWiresScopesAssignmentsAndAccountsThroughTheStagedPipeline} below.
  */
 @ExtendWith(MockitoExtension.class)
 class ReportConfigTreeRepositoryImplTest {
@@ -139,5 +155,57 @@ class ReportConfigTreeRepositoryImplTest {
 
         assertThat(result).isEmpty();
         verifyNoInteractions(jdbcTemplate);
+    }
+
+    @Test
+    void assembleTreesWiresScopesAssignmentsAndAccountsThroughTheStagedPipeline() {
+        ReportConfigTreeRepositoryImpl spyRepository = spy(repository);
+        ReportConfigRow config = config(1L);
+        AgreementScopeRow scope = new AgreementScopeRow(101L, 1L, "Scope A");
+        PaymentTypeAssignmentRow assignment = new PaymentTypeAssignmentRow(201L, 101L, "SWISH");
+        AccountAssignmentRow account = new AccountAssignmentRow(301L, 201L, "1234", "5678901", null, "SEK");
+        doReturn(List.of(scope)).when(spyRepository).findScopesByConfigIds(List.of(1L));
+        doReturn(List.of(assignment)).when(spyRepository).findAssignmentsByScopeIds(List.of(101L));
+        doReturn(List.of(account)).when(spyRepository).findAccountsByAssignmentIds(List.of(201L));
+        doReturn(List.of()).when(spyRepository).findAliasesByAssignmentIds(List.of(201L));
+
+        List<ReportConfigTree> trees = spyRepository.assembleTrees(List.of(config));
+
+        assertThat(trees).hasSize(1);
+        ReportConfigTree tree = trees.getFirst();
+        assertThat(tree.scopes()).hasSize(1);
+        assertThat(tree.scopes().getFirst().paymentTypeAssignments()).hasSize(1);
+        assertThat(tree.scopes().getFirst().paymentTypeAssignments().getFirst().accounts())
+                .containsExactly(account);
+        verify(spyRepository).findScopesByConfigIds(List.of(1L));
+        verify(spyRepository).findAssignmentsByScopeIds(List.of(101L));
+        verify(spyRepository).findAccountsByAssignmentIds(List.of(201L));
+        verify(spyRepository).findAliasesByAssignmentIds(List.of(201L));
+    }
+
+    @Test
+    void assembleTreesPropagatesAStagedQueryFailureWithoutSwallowingIt() {
+        ReportConfigTreeRepositoryImpl spyRepository = spy(repository);
+        ReportConfigRow config = config(1L);
+        RuntimeException dbFailure = new RuntimeException("simulated staged query failure");
+        doThrow(dbFailure).when(spyRepository).findScopesByConfigIds(List.of(1L));
+
+        assertThatThrownBy(() -> spyRepository.assembleTrees(List.of(config))).isSameAs(dbFailure);
+    }
+
+    private static ReportConfigRow config(long id) {
+        return new ReportConfigRow(
+                id,
+                (int) (10000000 + id),
+                ReportType.CAMT054C,
+                "1.0",
+                "DAILY",
+                "desc",
+                999L,
+                "IBAN",
+                true,
+                false,
+                false,
+                true);
     }
 }

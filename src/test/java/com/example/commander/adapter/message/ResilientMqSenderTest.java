@@ -4,10 +4,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
+import jakarta.jms.JMSException;
+import jakarta.jms.Session;
+import jakarta.jms.TextMessage;
 import java.time.Clock;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,11 +25,14 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.core.MessageCreator;
 
 /**
- * A mocked {@link JmsTemplate}'s {@code send(String, MessageCreator)} never actually invokes
- * the {@link MessageCreator} callback (there's no real {@code Session} to create a message
- * against) — so {@code SendOutcome.jmsMessageId()} is {@code null} in every test here, same as
- * a provider that doesn't assign one. Verifying the real ID gets captured needs the
- * {@code ibmmq} integration test, not this unit test.
+ * A mocked {@link JmsTemplate}'s {@code send(String, MessageCreator)} doesn't invoke the
+ * {@link MessageCreator} callback on its own (there's no real {@code Session} to create a
+ * message against) — so {@code SendOutcome.jmsMessageId()} is {@code null} in most tests
+ * here, same as a provider that doesn't assign one. Verifying the real ID gets captured
+ * needs the {@code ibmmq} integration test, not this unit test; the one exception is
+ * {@code sendStillReportsSuccessWithNullMessageIdWhenTheProviderCantReadItBack}, which
+ * drives the callback manually against a mocked {@code Session}/{@code Message} to reach
+ * {@code ResilientMqSender}'s own message-ID-read-failure fallback.
  */
 @ExtendWith(MockitoExtension.class)
 class ResilientMqSenderTest {
@@ -68,6 +77,41 @@ class ResilientMqSenderTest {
         assertThat(outcome.type()).isEqualTo(SendOutcome.Type.SUCCESS);
         assertThat(outcome.jmsMessageId()).isNull(); // see class Javadoc — mocked JmsTemplate, no real Session
         verify(jmsTemplate, times(1)).send(eq("Q1"), any(MessageCreator.class));
+    }
+
+    @Test
+    void transientFailureOnFirstAttemptRecoversOnRetryAndReportsSuccess() {
+        doThrow(new UncategorizedJmsException("broker blip"))
+                .doNothing()
+                .when(jmsTemplate)
+                .send(anyString(), any(MessageCreator.class));
+        ResilientMqSender sender = newSender();
+
+        SendOutcome outcome = sender.send("Q1", "payload");
+
+        assertThat(outcome.type()).isEqualTo(SendOutcome.Type.SUCCESS);
+        verify(jmsTemplate, times(2)).send(anyString(), any(MessageCreator.class));
+    }
+
+    @Test
+    void sendStillReportsSuccessWithNullMessageIdWhenTheProviderCantReadItBack() throws JMSException {
+        Session session = mock(Session.class);
+        TextMessage message = mock(TextMessage.class);
+        when(session.createTextMessage("payload")).thenReturn(message);
+        when(message.getJMSMessageID()).thenThrow(new JMSException("provider forgot to set it"));
+        doAnswer(invocation -> {
+                    MessageCreator creator = invocation.getArgument(1);
+                    creator.createMessage(session);
+                    return null;
+                })
+                .when(jmsTemplate)
+                .send(anyString(), any(MessageCreator.class));
+        ResilientMqSender sender = newSender();
+
+        SendOutcome outcome = sender.send("Q1", "payload");
+
+        assertThat(outcome.type()).isEqualTo(SendOutcome.Type.SUCCESS);
+        assertThat(outcome.jmsMessageId()).isNull();
     }
 
     @Test

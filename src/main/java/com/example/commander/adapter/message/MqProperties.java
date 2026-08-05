@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
@@ -30,7 +30,7 @@ public class MqProperties {
     /** Feature flag gating real MQ delivery — see the class Javadoc. */
     private boolean enabled = false;
 
-    @NotEmpty private Map<@NotNull ReportType, @NotBlank String> queues = new HashMap<>();
+    @NotEmpty private Map<@NotNull ReportType, @NotBlank String> queues = new EnumMap<>(ReportType.class);
 
     public boolean isEnabled() {
         return enabled;
@@ -45,7 +45,10 @@ public class MqProperties {
     }
 
     public void setQueues(Map<ReportType, String> queues) {
-        this.queues = queues != null ? new HashMap<>(queues) : new HashMap<>();
+        this.queues = new EnumMap<>(ReportType.class);
+        if (queues != null) {
+            this.queues.putAll(queues);
+        }
     }
 
     /**
