@@ -1,5 +1,6 @@
 package com.example.commander.domain.message;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import java.util.List;
 
 /**
@@ -46,6 +47,7 @@ public record PaymentTypeAllocation(
         return hasAccounts() && hasAliases();
     }
 
+    @JsonIgnore
     public boolean isEmpty() {
         return accounts.isEmpty() && aliases.isEmpty();
     }
