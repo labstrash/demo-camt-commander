@@ -13,11 +13,13 @@ import org.springframework.stereotype.Component;
  *
  * <p>Format: a six-field header ({@code
  * messageLength;versionNumber;messageDate;messageTime;accountOwner;accountCount}) followed by
- * {@code accountCount} triplets of {@code (clearingNumber;accountNumber;balance)}. Delimiter-
- * split, but each individual field can itself carry fixed-width space padding — every field is
- * trimmed after splitting so a padded {@code accountCount}/{@code messageDate}/{@code
- * messageTime} still parses, and a padded {@code accountOwner}/{@code clearingNumber}/{@code
- * accountNumber} still matches the corresponding unpadded database value.
+ * {@code accountCount} quadruplets of {@code
+ * (clearingNumber;accountNumber;balance;settlementAmount)}. Delimiter-split, but each
+ * individual field can itself carry fixed-width space padding — every field is trimmed after
+ * splitting so a padded {@code accountCount}/{@code messageDate}/{@code messageTime} still
+ * parses, a padded {@code accountOwner}/{@code clearingNumber}/{@code accountNumber} still
+ * matches the corresponding unpadded database value, and a padded {@code balance}/{@code
+ * settlementAmount} still matches byte-for-byte between messages.
  *
  * <p>Pure Java, no database dependency — easily testable without a database or Spring
  * context, same posture as {@code ReportMessageAssembler}.
@@ -26,7 +28,7 @@ import org.springframework.stereotype.Component;
 public class PhtMessageParser {
 
     private static final int HEADER_FIELD_COUNT = 6;
-    private static final int ACCOUNT_FIELD_COUNT = 3;
+    private static final int ACCOUNT_FIELD_COUNT = 4;
 
     /**
      * Parses {@code rawMessage} into a {@link PhtBalanceMessage}.
@@ -70,7 +72,8 @@ public class PhtMessageParser {
             String clearingNumber = fields[index++];
             String accountNumber = fields[index++];
             String balance = fields[index++];
-            accounts.add(new PhtAccountBalance(clearingNumber, accountNumber, balance));
+            String settlementAmount = fields[index++];
+            accounts.add(new PhtAccountBalance(clearingNumber, accountNumber, balance, settlementAmount));
         }
 
         return new PhtBalanceMessage(messageLength, versionNumber, messageDate, messageTime, accountOwner, accounts);

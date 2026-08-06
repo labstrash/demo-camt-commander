@@ -177,7 +177,7 @@ public class PhtReportOrchestrationService {
         for (PhtAccountBalance balance : phtMessage.accounts()) {
             byAccount.put(
                     new AccountKey(balance.clearingNumber(), balance.accountNumber()),
-                    new AccountBalance(balance.balance(), balance.balance()));
+                    new AccountBalance(balance.balance(), balance.settlementAmount()));
         }
         return byAccount;
     }

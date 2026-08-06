@@ -11,9 +11,16 @@ class PhtMessageParserTest {
 
     private final PhtMessageParser parser = new PhtMessageParser();
 
-    // Real sample from docs/pht.txt.
-    private static final String SAMPLE =
-            "192;01;20260731;173041;062021002635;03;81231;1234564917;4521,94;81231;1234568022;-6768017,24;81231;1234568055;-579660,07";
+    // Real sample, fixed-width space-padded balance/settlementAmount fields (16 chars each,
+    // right-justified) as PHT actually sends it — a quadruplet per account, not a triplet:
+    // (clearingNumber;accountNumber;balance;settlementAmount). An earlier version of this
+    // parser assumed a triplet based on an incomplete extract in docs/pht.txt, whose sample
+    // only ever showed balance == settlementAmount for every account and so never surfaced the
+    // missing fourth field.
+    private static final String SAMPLE = "192;01;20260731;173041;012345678901;03;"
+            + "11011;1234567917;         4521,94;         4521,94;"
+            + "11011;1234567022;     -6768017,24;     -6768017,24;"
+            + "11011;1234567055;      -579660,07;      -579660,07";
 
     @Test
     void parsesTheHeaderFields() {
@@ -23,30 +30,43 @@ class PhtMessageParserTest {
         assertThat(message.versionNumber()).isEqualTo("01");
         assertThat(message.messageDate()).isEqualTo("20260731");
         assertThat(message.messageTime()).isEqualTo("173041");
-        assertThat(message.accountOwner()).isEqualTo("062021002635");
+        assertThat(message.accountOwner()).isEqualTo("012345678901");
     }
 
     @Test
-    void parsesEveryAccountTriplet() {
+    void parsesEveryAccountQuadrupletTrimmingTheFixedWidthPadding() {
         PhtBalanceMessage message = parser.parse(SAMPLE);
 
         assertThat(message.accounts())
                 .containsExactly(
-                        new PhtAccountBalance("81231", "1234564917", "4521,94"),
-                        new PhtAccountBalance("81231", "1234568022", "-6768017,24"),
-                        new PhtAccountBalance("81231", "1234568055", "-579660,07"));
+                        new PhtAccountBalance("11011", "1234567917", "4521,94", "4521,94"),
+                        new PhtAccountBalance("11011", "1234567022", "-6768017,24", "-6768017,24"),
+                        new PhtAccountBalance("11011", "1234567055", "-579660,07", "-579660,07"));
+    }
+
+    @Test
+    void parsesDistinctBalanceAndSettlementAmountWithoutSwappingThem() {
+        // Guards against a bug where balance/settlementAmount get swapped or aliased to the
+        // same value — SAMPLE alone can't catch this since both happen to be equal there.
+        String distinct = "192;01;20260731;173041;012345678901;01;11011;1234567917;100,00;200,00";
+
+        PhtBalanceMessage message = parser.parse(distinct);
+
+        assertThat(message.accounts())
+                .containsExactly(new PhtAccountBalance("11011", "1234567917", "100,00", "200,00"));
     }
 
     @Test
     void trimsSpacePaddedFixedWidthFields() {
-        String padded =
-                "192 ;01;20260731;173041;062021002635 ;03; 81231;1234564917 ; 4521,94;81231;1234568022;-6768017,24;81231;1234568055;-579660,07";
+        String padded = "192 ;01;20260731;173041;012345678901 ;03; 11011;1234567917 ; 4521,94; 4521,94;"
+                + "11011;1234567022;-6768017,24;-6768017,24;11011;1234567055;-579660,07;-579660,07";
 
         PhtBalanceMessage message = parser.parse(padded);
 
         assertThat(message.messageLength()).isEqualTo("192");
-        assertThat(message.accountOwner()).isEqualTo("062021002635");
-        assertThat(message.accounts().getFirst()).isEqualTo(new PhtAccountBalance("81231", "1234564917", "4521,94"));
+        assertThat(message.accountOwner()).isEqualTo("012345678901");
+        assertThat(message.accounts().getFirst())
+                .isEqualTo(new PhtAccountBalance("11011", "1234567917", "4521,94", "4521,94"));
     }
 
     @Test

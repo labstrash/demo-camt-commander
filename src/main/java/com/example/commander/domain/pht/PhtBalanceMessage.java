@@ -8,7 +8,8 @@ import java.util.Objects;
  *
  * <p>The wire format is semicolon-delimited: a six-field header
  * ({@code messageLength;versionNumber;messageDate;messageTime;accountOwner;accountCount})
- * followed by {@code accountCount} triplets of {@code (clearingNumber;accountNumber;balance)}.
+ * followed by {@code accountCount} quadruplets of {@code
+ * (clearingNumber;accountNumber;balance;settlementAmount)}.
  * Every header field is kept as PHT's own string representation — none of them are
  * parsed/interpreted here (in particular, {@code messageDate}/{@code messageTime} are not
  * converted to a temporal type; nothing downstream needs them as one).

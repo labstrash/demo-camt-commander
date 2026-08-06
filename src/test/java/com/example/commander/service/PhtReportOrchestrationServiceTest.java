@@ -145,6 +145,34 @@ class PhtReportOrchestrationServiceTest {
     }
 
     @Test
+    void indexesBalanceAndSettlementAmountSeparatelyRatherThanDuplicatingBalanceIntoBoth() {
+        // Regression test: indexBalances() used to duplicate the single parsed balance value
+        // into both AccountBalance fields. PHT actually sends both as distinct wire fields.
+        when(agreementScopeRepository.findActiveMessageRecipientId("062021002635", ReportType.CAMT052B))
+                .thenReturn(Optional.of(999L));
+        when(reportConfigRepository.findRecipientById(999L)).thenReturn(Optional.of(recipient()));
+        when(reportConfigRepository.findActiveByRecipientAndReportType(999L, ReportType.CAMT052B))
+                .thenReturn(Optional.of(config()));
+        ReportConfigTree tree = new ReportConfigTree(config(), List.of());
+        when(reportConfigTreeRepository.assembleTrees(List.of(config()))).thenReturn(List.of(tree));
+        when(reportMessageAssembler.assemble(eq(tree), any())).thenReturn(List.of(envelope(true)));
+        PhtBalanceMessage message = new PhtBalanceMessage(
+                "192",
+                "01",
+                "20260731",
+                "173041",
+                "062021002635",
+                List.of(new PhtAccountBalance("81231", "1234564917", "100,00", "200,00")));
+
+        newService().process(message);
+
+        ArgumentCaptor<AssemblyContext> contextCaptor = ArgumentCaptor.forClass(AssemblyContext.class);
+        verify(reportMessageAssembler).assemble(eq(tree), contextCaptor.capture());
+        assertThat(contextCaptor.getValue().accountBalances())
+                .containsEntry(new AccountKey("81231", "1234564917"), new AccountBalance("100,00", "200,00"));
+    }
+
+    @Test
     void derivesTheReportWindowFromTheMessagesOwnDateAndTimeRatherThanProcessingTime() {
         when(agreementScopeRepository.findActiveMessageRecipientId("062021002635", ReportType.CAMT052B))
                 .thenReturn(Optional.of(999L));
@@ -205,7 +233,7 @@ class PhtReportOrchestrationServiceTest {
                 "20260731",
                 "173041",
                 "062021002635",
-                List.of(new PhtAccountBalance("81231", "1234564917", "4521,94")));
+                List.of(new PhtAccountBalance("81231", "1234564917", "4521,94", "4521,94")));
     }
 
     private static RecipientRow recipient() {

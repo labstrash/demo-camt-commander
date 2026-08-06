@@ -26,8 +26,10 @@ import org.mockito.stubbing.Answer;
 @ExtendWith(MockitoExtension.class)
 class PhtMessageListenerTest {
 
-    private static final String SAMPLE =
-            "192;01;20260731;173041;062021002635;03;81231;1234564917;4521,94;81231;1234568022;-6768017,24;81231;1234568055;-579660,07";
+    private static final String SAMPLE = "192;01;20260731;173041;062021002635;03;"
+            + "81231;1234564917;4521,94;4521,94;"
+            + "81231;1234568022;-6768017,24;-6768017,24;"
+            + "81231;1234568055;-579660,07;-579660,07";
 
     @Mock
     private PhtReportOrchestrationService orchestrationService;
