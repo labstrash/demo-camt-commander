@@ -41,7 +41,7 @@ public class PeriodicReportPipelineRunner {
         this.schedulingProperties = schedulingProperties;
     }
 
-    @Scheduled(cron = "0 0/15 * * * *")
+    @Scheduled(cron = "0 0/10 * * * *")
     public void triggerAllConfiguredReportTypes() {
         for (SchedulingProperties.Schedule schedule : schedulingProperties.getSchedules()) {
             ReportFrequency frequency = ReportFrequency.fromConfig(schedule.getFrequency());
