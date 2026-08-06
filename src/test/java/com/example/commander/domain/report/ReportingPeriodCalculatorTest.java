@@ -75,23 +75,23 @@ class ReportingPeriodCalculatorTest {
 
     @Test
     void shouldCalculateDailyWindow() {
-        // Non-midnight fire time (10:30 UTC), the case the calendar-day rule specifically
-        // exists to handle correctly.
+        // Non-midnight fire time (10:30 UTC) - proves the window is anchored to midnight
+        // of the day before the fire's date, not the fire time itself.
         Instant fireTime =
                 ZonedDateTime.of(2026, 1, 15, 10, 30, 0, 0, ZoneId.of("UTC")).toInstant();
 
         ReportWindow window = calculator.calculate(ReportFrequency.DAILY, fireTime);
 
-        // windowEnd = the actual scheduled fire time; windowStart = midnight of the
-        // calendar day before the fire's date. NOT midnight-to-midnight — a plain
-        // 24h calendar day would silently drop the fire time's offset from midnight
-        // every single day.
+        // Point-in-time at midnight of the calendar day before the fire's date - start ==
+        // end, like SNAPSHOT but anchored to yesterday rather than the fire time. This
+        // keeps consecutive DAILY runs from ever overlapping, since every run's single
+        // instant is a fixed calendar boundary rather than a moving fire time.
         ZonedDateTime businessFireTime = fireTime.atZone(ZoneId.of("Europe/Stockholm"));
-        ZonedDateTime expectedEnd = businessFireTime;
         ZonedDateTime expectedStart = businessFireTime
                 .toLocalDate()
                 .atStartOfDay(ZoneId.of("Europe/Stockholm"))
                 .minusDays(1);
+        ZonedDateTime expectedEnd = expectedStart;
 
         assertThat(window.windowStartUtc()).isEqualTo(expectedStart.toInstant());
         assertThat(window.windowEndUtc()).isEqualTo(expectedEnd.toInstant());

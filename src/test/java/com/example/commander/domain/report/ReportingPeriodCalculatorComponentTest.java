@@ -23,14 +23,15 @@ class ReportingPeriodCalculatorComponentTest {
         ZonedDateTime fireTime = ZonedDateTime.of(2024, 3, 31, 10, 0, 0, 0, ZoneId.of("UTC"));
         ReportWindow window = calculator.calculate(ReportFrequency.DAILY, fireTime.toInstant());
 
-        // windowEnd = the actual scheduled fire time (10:00 UTC = 12:00 CEST post-transition),
-        // not midnight — see the guide's calendar-day rule (§2). windowStart is still
-        // midnight of the day before, so this window spans 23h on the transition day.
-        ZonedDateTime expectedEnd = fireTime.withZoneSameInstant(ZoneId.of("Europe/Stockholm"));
-        ZonedDateTime expectedStart = expectedEnd
+        // Point-in-time at midnight of the day before the fire's date (start == end) - what's
+        // under test here is that "midnight of yesterday" resolves to the correct UTC instant
+        // even when the fire date itself is a DST transition day, not the window's duration
+        // (there isn't one - start == end regardless of DST).
+        ZonedDateTime expectedStart = fireTime.withZoneSameInstant(ZoneId.of("Europe/Stockholm"))
                 .toLocalDate()
                 .atStartOfDay(ZoneId.of("Europe/Stockholm"))
                 .minusDays(1);
+        ZonedDateTime expectedEnd = expectedStart;
 
         assertThat(window.windowStartUtc()).isEqualTo(expectedStart.toInstant());
         assertThat(window.windowEndUtc()).isEqualTo(expectedEnd.toInstant());
@@ -45,12 +46,13 @@ class ReportingPeriodCalculatorComponentTest {
         ZonedDateTime fireTime = ZonedDateTime.of(2024, 1, 15, 10, 0, 0, 0, ZoneId.of("UTC"));
         ReportWindow window = calculator.calculate(ReportFrequency.DAILY, fireTime.toInstant());
 
-        // windowEnd = the actual scheduled fire time, converted to New York time.
-        ZonedDateTime expectedEnd = fireTime.withZoneSameInstant(ZoneId.of("America/New_York"));
-        ZonedDateTime expectedStart = expectedEnd
+        // Point-in-time at midnight of the day before the fire's date, converted to New
+        // York time - start == end.
+        ZonedDateTime expectedStart = fireTime.withZoneSameInstant(ZoneId.of("America/New_York"))
                 .toLocalDate()
                 .atStartOfDay(ZoneId.of("America/New_York"))
                 .minusDays(1);
+        ZonedDateTime expectedEnd = expectedStart;
 
         assertThat(window.windowStartUtc()).isEqualTo(expectedStart.toInstant());
         assertThat(window.windowEndUtc()).isEqualTo(expectedEnd.toInstant());
