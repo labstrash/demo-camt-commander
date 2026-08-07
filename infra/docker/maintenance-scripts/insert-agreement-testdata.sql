@@ -111,7 +111,7 @@ DECLARE @Scopes TABLE (
 INSERT INTO @Scopes
     (ScopeSeq, ScopeName, ReportType, ConfigId, ReportVersion, ReportFrequency, ConfigDescription, AccountFormat, IsActive, IsPaginated, IsEmptyReportAllowed, IsBundled)
 VALUES
-    (1, N'Test Data Scope 1', N'CAMT054C', 99000001, N'V02', N'DAILY',         N'Ad-hoc test data config 1', N'IBAN', 1, 0, 1, 0),
+    (1, N'Test Data Scope 1', N'CAMT054C', 99000001, N'V02', N'FOUR_TIMES_PER_DAY', N'Ad-hoc test data config 1', N'IBAN', 1, 0, 1, 0),
     (2, N'Test Data Scope 2', N'CAMT052B', 99000002, N'V02', N'EVERY_2_HOURS', N'Ad-hoc test data config 2', N'BBAN', 1, 0, 1, 1);
     -- add / remove rows as needed — one row = one AgreementScope + one ReportConfig
 

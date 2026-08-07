@@ -289,8 +289,10 @@ VALUES (@EdgeVersionId2, N'Edge Scope - Dangling PTA', @EdgeRecipientId2, N'CAMT
 SET @EdgeScopeId2 = SCOPE_IDENTITY();
 
     -- Deliberately no AccountAssignment / AliasAssignment rows for this PTA.
+    -- ALL, not INSTDOM/INCALIAS - this scope's ReportType is CAMT052B, and only
+    -- CAMT054C scopes use the INSTDOM/INCALIAS payment types.
 INSERT INTO CAMT.PaymentTypeAssignment (AgreementScopeId, PaymentType, CreatedAt, CreatedBy)
-VALUES (@EdgeScopeId2, N'INSTDOM', SYSDATETIME(), N'seed');
+VALUES (@EdgeScopeId2, N'ALL', SYSDATETIME(), N'seed');
 
 INSERT INTO CAMT.ReportConfig
 (ConfigId, ReportType, ReportVersion, ReportFrequency, Description, MessageRecipientId, AccountFormat, IsActive, IsPaginated, IsEmptyReportAllowed, IsBundled, CreatedAt, CreatedBy)
@@ -674,9 +676,12 @@ VALUES
     -- =========================================================================
     -- SECTION D: MULTI-PAYMENT-TYPE SCOPE & REMAINING FREQUENCY COVERAGE
     --   D.1 - a single AgreementScope with TWO PaymentTypeAssignment rows
-    --         (INSTDOM + INCALIAS), each with its own account -
-    --         nothing before this exercised a scope fanning out to more
-    --         than one payment type. Also covers EVERY_4_HOURS.
+    --         (INSTDOM + INCALIAS), each with its own account - nothing
+    --         before this exercised a scope fanning out to more than one
+    --         payment type. ReportType is CAMT054C: INSTDOM/INCALIAS are
+    --         only valid payment types under CAMT054C scopes, so this can't
+    --         be demonstrated under any other report type. EVERY_4_HOURS
+    --         coverage comes from Section C (C.4/C.5) instead.
     --   D.2/D.3/D.4 - simple single-scope agreements covering the three
     --         remaining ReportFrequency codes no seed data used yet:
     --         EVERY_30_MIN, EVERY_2_HOURS, EIGHT_TIMES_PER_DAY.
@@ -706,7 +711,7 @@ SET @DVersionId1 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.AgreementScope
 (AgreementVersionId, Name, MessageRecipientId, ReportType, Status, CreatedAt, ActivatedAt, CreatedBy)
-VALUES (@DVersionId1, N'CAMT052BT - V02 - EVERY_4_HOURS (Multi-PaymentType)', @DRecipientId1, N'CAMT052BT', N'ACTIVE', SYSDATETIME(), SYSDATETIME(), N'seed');
+VALUES (@DVersionId1, N'CAMT054C - V02 - FOUR_TIMES_PER_DAY (Multi-PaymentType)', @DRecipientId1, N'CAMT054C', N'ACTIVE', SYSDATETIME(), SYSDATETIME(), N'seed');
 SET @DScopeId1 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.PaymentTypeAssignment (AgreementScopeId, PaymentType, CreatedAt, CreatedBy)
@@ -725,7 +730,7 @@ VALUES
 
 INSERT INTO CAMT.ReportConfig
 (ConfigId, ReportType, ReportVersion, ReportFrequency, Description, MessageRecipientId, AccountFormat, IsActive, IsPaginated, IsEmptyReportAllowed, IsBundled, CreatedAt, CreatedBy)
-VALUES (10000209, N'CAMT052BT', N'V02', N'EVERY_4_HOURS', N'Multi-payment-type scope (INSTDOM + INCALIAS), bundled', @DRecipientId1, N'IBAN', 1, 0, 1, 1, SYSDATETIME(), N'seed');
+VALUES (10000209, N'CAMT054C', N'V02', N'FOUR_TIMES_PER_DAY', N'Multi-payment-type scope (INSTDOM + INCALIAS), bundled', @DRecipientId1, N'IBAN', 1, 0, 1, 1, SYSDATETIME(), N'seed');
 SET @DConfigId1 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.ReportAgreementScope (ReportConfigId, AgreementScopeId, CreatedAt, CreatedBy)
