@@ -25,10 +25,6 @@ public class ReportCommandAuditRepositoryImpl implements ReportCommandAuditRepos
 
     private static final TimeZone UTC = TimeZone.getTimeZone("UTC");
 
-    private static final String EXISTS_SENT_SQL = "SELECT CASE WHEN EXISTS ("
-            + "SELECT 1 FROM CAMT.ReportCommandAudit WHERE correlation_id = ? AND status = 'SENT'"
-            + ") THEN 1 ELSE 0 END";
-
     private static final String INSERT_SQL = """
             INSERT INTO CAMT.ReportCommandAudit
                 (message_id, correlation_id, report_config_id, config_id, agreement_scope_id,
@@ -50,12 +46,6 @@ public class ReportCommandAuditRepositoryImpl implements ReportCommandAuditRepos
 
     public ReportCommandAuditRepositoryImpl(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
-    }
-
-    @Override
-    public boolean existsSent(String correlationId) {
-        Boolean exists = jdbcTemplate.queryForObject(EXISTS_SENT_SQL, Boolean.class, correlationId);
-        return Boolean.TRUE.equals(exists);
     }
 
     @Override

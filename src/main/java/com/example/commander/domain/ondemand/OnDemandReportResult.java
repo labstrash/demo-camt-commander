@@ -11,8 +11,7 @@ import java.util.List;
  *
  * <p>A request that does reach delivery can fan out to more than one message (an unbundled
  * config with multiple scopes/accounts). {@link #status()} aggregates {@link #messages()} for
- * that case: {@code FAILED} if any message failed, else {@code SENT} if any message sent,
- * else {@code SKIPPED_DUPLICATE} if every message was already-sent.
+ * that case: {@code FAILED} if any message failed, else {@code SENT}.
  *
  * @param status the overall outcome
  * @param detail human-readable reason for a rejection; {@code null} otherwise

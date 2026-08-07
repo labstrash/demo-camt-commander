@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  * Thin {@code @StepScope} adapter: resolves this step's batch-specific context once
  * ({@code reportType}/{@code reportFrequency} from {@code JobParameters}, the target queue,
  * {@code StepExecution} identity), then calls {@link ReportMessageDeliveryService#deliver}
- * per chunk item — the actual dedup/send/dead-letter/audit logic lives there now, shared
+ * per chunk item — the actual send/dead-letter/audit logic lives there now, shared
  * with the on-demand trigger path (Phase 7, Decision 5), which has none of this batch
  * context to resolve.
  *
@@ -54,21 +54,13 @@ public class MqReportMessageWriter implements ItemWriter<ReportMessageEnvelope> 
     @Override
     public void write(Chunk<? extends ReportMessageEnvelope> chunk) throws Exception {
         int sent = 0;
-        int skipped = 0;
         for (ReportMessageEnvelope item : chunk) {
             ReportCommandAuditStatus status =
                     deliveryService.deliver(item, targetQueue, reportFrequency, jobExecutionId, stepExecutionId);
             if (status == ReportCommandAuditStatus.SENT) {
                 sent++;
-            } else if (status == ReportCommandAuditStatus.SKIPPED_DUPLICATE) {
-                skipped++;
             }
         }
-        log.info(
-                "Sent {}/{} message(s) to queue={} ({} skipped as duplicates)",
-                sent,
-                chunk.size(),
-                targetQueue,
-                skipped);
+        log.info("Sent {}/{} message(s) to queue={}", sent, chunk.size(), targetQueue);
     }
 }

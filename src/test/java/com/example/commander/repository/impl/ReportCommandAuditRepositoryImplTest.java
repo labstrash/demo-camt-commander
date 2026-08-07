@@ -3,7 +3,6 @@ package com.example.commander.repository.impl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -41,21 +40,6 @@ class ReportCommandAuditRepositoryImplTest {
     @BeforeEach
     void setUp() {
         repository = new ReportCommandAuditRepositoryImpl(jdbcTemplate);
-    }
-
-    @Test
-    void existsSentReturnsTrueWhenQueryReturnsOne() {
-        when(jdbcTemplate.queryForObject(anyString(), eq(Boolean.class), eq("corr-id")))
-                .thenReturn(true);
-
-        assertThat(repository.existsSent("corr-id")).isTrue();
-    }
-
-    @Test
-    void existsSentReturnsFalseWhenQueryReturnsFalseOrNull() {
-        when(jdbcTemplate.queryForObject(anyString(), eq(Boolean.class), eq("corr-id")))
-                .thenReturn(false);
-        assertThat(repository.existsSent("corr-id")).isFalse();
     }
 
     @Test

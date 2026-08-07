@@ -19,10 +19,6 @@
 --   - status is NVARCHAR(30), not NVARCHAR(20): the Java-only status values
 --     REJECTED_CONFIG_NOT_ELIGIBLE (28 chars) and REJECTED_INVALID_WINDOW
 --     (23 chars) do not fit in NVARCHAR(20).
---   - UX_ReportCommandAudit_CorrelationId_Sent (filtered unique index) is the
---     structural guarantee that at most one row can ever be status='SENT' for
---     a given correlation_id, while still allowing many FAILED/SKIPPED_DUPLICATE
---     rows per correlation_id for the retry/recovery audit trail.
 --
 -- DeadLetterMessage.agreement_scope_id is BIGINT NULL, not NOT NULL: a bundled
 -- or config-only message has no single originating scope (it merges allocations
@@ -142,16 +138,6 @@ PRINT '  ✓ IX_ReportCommandAudit_Status created.';
 
 CREATE INDEX IX_ReportCommandAudit_JobExecution ON CAMT.ReportCommandAudit (job_execution_id);
 PRINT '  ✓ IX_ReportCommandAudit_JobExecution created.';
-
-    -- Structural dedup guarantee: a plain UNIQUE constraint on correlation_id would reject
-    -- legitimate retry/recovery rows, since multiple attempts of the same logical message
-    -- are expected. Filtering to status = 'SENT' allows many FAILED/SKIPPED_DUPLICATE rows
-    -- per correlation_id while making it DB-enforced, not just app-level discipline, that
-    -- at most one can ever be SENT.
-CREATE UNIQUE INDEX UX_ReportCommandAudit_CorrelationId_Sent
-    ON CAMT.ReportCommandAudit (correlation_id)
-    WHERE status = 'SENT';
-PRINT '  ✓ UX_ReportCommandAudit_CorrelationId_Sent created.';
 
     PRINT '✓ All ReportCommandAudit indexes created successfully.';
     PRINT '';

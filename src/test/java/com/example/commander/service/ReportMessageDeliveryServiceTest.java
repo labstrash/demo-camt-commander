@@ -40,8 +40,8 @@ import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 /**
- * Covers dedup-check → send → dead-letter-on-failure → audit-insert, the single send path
- * shared by {@code MqReportMessageWriter} (batch) and, eventually, the on-demand path.
+ * Covers send → dead-letter-on-failure → audit-insert, the single send path shared by
+ * {@code MqReportMessageWriter} (batch) and the on-demand path.
  */
 @ExtendWith(MockitoExtension.class)
 class ReportMessageDeliveryServiceTest {
@@ -177,20 +177,6 @@ class ReportMessageDeliveryServiceTest {
         ReportCommandAuditEntry entry = capturedAuditEntry();
         assertThat(entry.status()).isEqualTo(ReportCommandAuditStatus.FAILED);
         assertThat(entry.errorMessage()).contains("Serialization failed").contains("boom");
-    }
-
-    @Test
-    void existingSentRowForCorrelationIdSkipsTheSendEntirelyAndReturnsSkippedDuplicate() {
-        ReportMessageDeliveryService service = newService();
-        when(auditRepository.existsSent("corr-id")).thenReturn(true);
-
-        ReportCommandAuditStatus status = service.deliver(message(), TARGET_QUEUE, "DAILY", 111L, 222L);
-
-        assertThat(status).isEqualTo(ReportCommandAuditStatus.SKIPPED_DUPLICATE);
-        verify(sender, never()).send(any(), any());
-        verify(deadLetterRepository, never()).insert(any());
-        ReportCommandAuditEntry entry = capturedAuditEntry();
-        assertThat(entry.status()).isEqualTo(ReportCommandAuditStatus.SKIPPED_DUPLICATE);
     }
 
     @Test

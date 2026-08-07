@@ -23,8 +23,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.batch.infrastructure.item.Chunk;
 
 /**
- * This is a thin {@code @StepScope} adapter — the dedup/send/dead-letter/audit behavior itself
- * is {@link ReportMessageDeliveryService}'s concern, covered by {@code
+ * This is a thin {@code @StepScope} adapter — the send/dead-letter/audit behavior itself is
+ * {@link ReportMessageDeliveryService}'s concern, covered by {@code
  * ReportMessageDeliveryServiceTest}. What's left to verify here is only that this writer
  * resolves its batch-specific context correctly and delegates once per chunk item with it.
  */
@@ -62,7 +62,7 @@ class MqReportMessageWriterTest {
         when(deliveryService.deliver(eq(first), eq(TARGET_QUEUE), eq("DAILY"), eq(111L), eq(222L)))
                 .thenReturn(ReportCommandAuditStatus.SENT);
         when(deliveryService.deliver(eq(second), eq(TARGET_QUEUE), eq("DAILY"), eq(111L), eq(222L)))
-                .thenReturn(ReportCommandAuditStatus.SKIPPED_DUPLICATE);
+                .thenReturn(ReportCommandAuditStatus.FAILED);
 
         writer.write(new Chunk<>(List.of(first, second)));
 

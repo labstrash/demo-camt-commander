@@ -13,33 +13,22 @@ import com.example.commander.repository.ReportCommandAuditRepository;
 import java.time.Clock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Component;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 /**
  * The one place a resolved, ready-to-send {@link ReportMessageEnvelope} actually goes to
- * MQ: dedup pre-check → serialize → {@link ResilientMqSender#send} → dead-letter-on-failure
- * → one {@code CAMT.ReportCommandAudit} row per attempt. Extracted out of {@code
- * MqReportMessageWriter} (Phase 6) so the on-demand path (Phase 7) can reuse the exact same
- * logic instead of a second implementation that could silently drift from this one —
- * {@code MqReportMessageWriter} is now a thin {@code @StepScope} adapter that resolves its
+ * MQ: serialize → {@link ResilientMqSender#send} → dead-letter-on-failure → one {@code
+ * CAMT.ReportCommandAudit} row per attempt. Extracted out of {@code MqReportMessageWriter}
+ * (Phase 6) so the on-demand path (Phase 7) can reuse the exact same logic instead of a
+ * second implementation that could silently drift from this one — {@code
+ * MqReportMessageWriter} is now a thin {@code @StepScope} adapter that resolves its
  * batch-specific context once, then calls {@link #deliver} per chunk item.
  *
  * <p>Plain {@code @Component}, no {@code @StepScope} — nothing here depends on an active
  * Spring Batch step context, which is exactly what makes it callable from an HTTP request
  * handler that has no such context at all.
- *
- * <p><b>Dedup, before every send:</b> a pre-check ({@link
- * ReportCommandAuditRepository#existsSent(String)}) skips the send entirely — logging a
- * {@link ReportCommandAuditStatus#SKIPPED_DUPLICATE} row instead — if this message's {@code
- * correlationId} already has a {@code SENT} row. This is the cheap common-case guard, not
- * the structural guarantee: that's {@code UX_ReportCommandAudit_CorrelationId_Sent}, a
- * filtered unique index the audit {@code INSERT} itself can violate if a concurrent attempt
- * won the race this pre-check missed — {@link #insertAudit(ReportCommandAuditEntry)} catches
- * {@link DuplicateKeyException} specifically and treats it as "already recorded," not a
- * failure.
  *
  * <p>A message {@link ResilientMqSender} couldn't deliver (retries exhausted, permanent
  * failure, or the circuit breaker open) is written to {@code CAMT.DeadLetterMessage} instead
@@ -79,7 +68,7 @@ public class ReportMessageDeliveryService {
     }
 
     /**
-     * Delivers one message: dedup pre-check, send, dead-letter-on-failure, audit row.
+     * Delivers one message: send, dead-letter-on-failure, audit row.
      *
      * @param item the resolved pipeline message to deliver
      * @param targetQueue the MQ queue to send to
@@ -100,15 +89,6 @@ public class ReportMessageDeliveryService {
         ReportMessage payload = item.payload();
         DeliveryContext deliveryContext =
                 new DeliveryContext(targetQueue, reportFrequency, jobExecutionId, stepExecutionId);
-
-        if (auditRepository.existsSent(payload.correlationId())) {
-            log.info(
-                    "Skipping send: correlationId={} already has a SENT audit row (messageId={})",
-                    payload.correlationId(),
-                    payload.messageId());
-            insertAudit(auditEntry(item, ReportCommandAuditStatus.SKIPPED_DUPLICATE, null, null, 0, deliveryContext));
-            return ReportCommandAuditStatus.SKIPPED_DUPLICATE;
-        }
 
         String json;
         try {
@@ -215,17 +195,7 @@ public class ReportMessageDeliveryService {
     }
 
     private void insertAudit(ReportCommandAuditEntry entry) {
-        try {
-            auditRepository.insert(entry);
-        } catch (DuplicateKeyException _) {
-            // The pre-check missed a race — a concurrent attempt already recorded SENT for
-            // this correlationId between our check and this insert. The filtered unique
-            // index caught it; that's exactly what it's for, not a failure to propagate.
-            log.warn(
-                    "Audit insert for correlationId={} hit the SENT dedup constraint — "
-                            + "a concurrent attempt already recorded success",
-                    entry.correlationId());
-        }
+        auditRepository.insert(entry);
     }
 
     /**

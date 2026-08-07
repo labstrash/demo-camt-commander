@@ -14,14 +14,6 @@ public enum ReportCommandAuditStatus {
     FAILED,
 
     /**
-     * The attempt was skipped before ever reaching MQ, because a row with this
-     * {@code correlation_id} already has {@code status = SENT} — the dedup pre-check
-     * caught it. Still recorded, not silently dropped, so a correctly-skipped duplicate
-     * firing is visible rather than indistinguishable from "nothing happened."
-     */
-    SKIPPED_DUPLICATE,
-
-    /**
      * An on-demand request was rejected because no active {@code ReportConfig} could be
      * resolved for the requested recipient/report type — either the recipient itself didn't
      * resolve, or the recipient resolved but has no matching (active) config.

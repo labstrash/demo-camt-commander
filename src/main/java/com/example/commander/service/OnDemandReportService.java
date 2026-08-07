@@ -158,13 +158,15 @@ public class OnDemandReportService {
         return new OnDemandReportResult(aggregateStatus(outcomes), null, outcomes);
     }
 
+    /**
+     * {@code FAILED} if any message failed, else {@code SENT} — including the vacuous case
+     * where {@code outcomes} is empty (every resolved scope's assignments were dangling, so
+     * assembly produced nothing to attempt sending): no failures occurred, so there's nothing
+     * to report as wrong.
+     */
     private static ReportCommandAuditStatus aggregateStatus(List<OnDemandMessageOutcome> outcomes) {
         boolean anyFailed = outcomes.stream().anyMatch(o -> o.status() == ReportCommandAuditStatus.FAILED);
-        if (anyFailed) {
-            return ReportCommandAuditStatus.FAILED;
-        }
-        boolean anySent = outcomes.stream().anyMatch(o -> o.status() == ReportCommandAuditStatus.SENT);
-        return anySent ? ReportCommandAuditStatus.SENT : ReportCommandAuditStatus.SKIPPED_DUPLICATE;
+        return anyFailed ? ReportCommandAuditStatus.FAILED : ReportCommandAuditStatus.SENT;
     }
 
     private OnDemandReportResult rejectConfigNotEligible(OnDemandReportRequest request, String detail) {
@@ -178,11 +180,7 @@ public class OnDemandReportService {
         return new OnDemandReportResult(ReportCommandAuditStatus.REJECTED_INVALID_WINDOW, detail, List.of());
     }
 
-    /**
-     * Builds and inserts a rejection-audit row. Never hits the {@code SENT} dedup
-     * constraint — that filtered unique index only applies to {@code status = 'SENT'} rows,
-     * and neither rejection status is ever {@code SENT}.
-     */
+    /** Builds and inserts a rejection-audit row. */
     private void insertRejectionAudit(
             OnDemandReportRequest request,
             ReportConfigRow config,

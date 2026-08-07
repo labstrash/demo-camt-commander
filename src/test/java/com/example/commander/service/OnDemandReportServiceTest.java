@@ -158,22 +158,24 @@ class OnDemandReportServiceTest {
     }
 
     @Test
-    void everyMessageAlreadySentMakesTheOverallStatusSkippedDuplicate() {
+    void noMessagesAssembledMakesTheOverallStatusSentVacuously() {
+        // Reachable when every scope's payment-type assignments are dangling (neither
+        // accounts nor aliases) — assembly produces nothing to attempt sending, and with
+        // no failures having occurred, that's reported as SENT with an empty message list
+        // rather than a status implying something went wrong.
         when(reportConfigRepository.findRecipientByTypeAndValue("BIC", "SOMEBIC"))
                 .thenReturn(Optional.of(recipient()));
         when(reportConfigRepository.findActiveByRecipientAndReportType(999L, ReportType.CAMT054C))
                 .thenReturn(Optional.of(config()));
         ReportConfigTree tree = new ReportConfigTree(config(), List.of());
         when(reportConfigTreeRepository.assembleTrees(List.of(config()))).thenReturn(List.of(tree));
-        ReportMessageEnvelope envelope = envelope();
-        when(reportMessageAssembler.assemble(eq(tree), any())).thenReturn(List.of(envelope));
-        when(deliveryService.deliver(envelope, "CAMT.054C.QUEUE", null, null, null))
-                .thenReturn(ReportCommandAuditStatus.SKIPPED_DUPLICATE);
+        when(reportMessageAssembler.assemble(eq(tree), any())).thenReturn(List.of());
 
         OnDemandReportResult result = newService().trigger(request());
 
-        assertThat(result.status()).isEqualTo(ReportCommandAuditStatus.SKIPPED_DUPLICATE);
-        assertThat(result.messages()).hasSize(1);
+        assertThat(result.status()).isEqualTo(ReportCommandAuditStatus.SENT);
+        assertThat(result.messages()).isEmpty();
+        verify(deliveryService, never()).deliver(any(), any(), any(), any(), any());
     }
 
     @Test
