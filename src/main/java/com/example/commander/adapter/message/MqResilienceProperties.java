@@ -43,6 +43,9 @@ public class MqResilienceProperties {
     /** Recovery attempts allowed before a dead-letter row is marked terminally failed. */
     @Positive private int deadLetterMaxRetries = 5;
 
+    /** Maximum dead-letter rows processed per recovery firing — bounds a single poll so a large backlog can't make one run unbounded. */
+    @Positive private int recoveryBatchSize = 100;
+
     /** Backoff applied to any report type not listed in {@link #deadLetterRetryBackoffTiers}. */
     @Valid private RetryBackoff deadLetterRetryBackoffDefault = new RetryBackoff(60, 3600);
 
@@ -98,6 +101,14 @@ public class MqResilienceProperties {
 
     public void setDeadLetterMaxRetries(int deadLetterMaxRetries) {
         this.deadLetterMaxRetries = deadLetterMaxRetries;
+    }
+
+    public int getRecoveryBatchSize() {
+        return recoveryBatchSize;
+    }
+
+    public void setRecoveryBatchSize(int recoveryBatchSize) {
+        this.recoveryBatchSize = recoveryBatchSize;
     }
 
     public RetryBackoff getDeadLetterRetryBackoffDefault() {

@@ -70,9 +70,8 @@ public class ReportPipelineItemReader extends AbstractItemStreamItemReader<Repor
      * Execution-context key for the cumulative count of {@code ReportConfig} rows read across
      * all pages — distinct from Spring Batch's own {@code StepExecution.getReadCount()}, which
      * counts {@link #read()} calls (i.e. messages, since each fanned-out message is one item),
-     * not configs. {@link com.example.commander.scheduling.PeriodicReportPipelineRunner} reads
-     * this key back from the completed {@code StepExecution} to report an accurate config count
-     * alongside the message count.
+     * not configs. Available on the completed {@code StepExecution} for a caller wanting an
+     * accurate config count alongside the message count.
      */
     public static final String CONFIGS_READ_COUNT_KEY = "reportPipeline.configsReadCount";
 
