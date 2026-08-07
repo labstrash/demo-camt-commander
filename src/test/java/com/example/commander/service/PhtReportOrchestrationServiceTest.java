@@ -241,8 +241,14 @@ class PhtReportOrchestrationServiceTest {
     }
 
     private static ReportConfigRow config() {
+        // reportFrequency is a plain descriptive String here — PHT never parses/validates it,
+        // since it derives its own window from the pushed message's own date/time, not from
+        // any Quartz schedule. Any valid CAMT.ReportFrequency code works; DAILY is used simply
+        // because it isn't one of CAMT052B's actual commander.scheduling.schedules[] entries
+        // (EVERY_30_MIN/1_HOUR/2_HOURS/4_HOURS), avoiding the appearance that this PHT-only
+        // config is also Quartz-scheduled.
         return new ReportConfigRow(
-                1L, 12345678, ReportType.CAMT052B, "1.0", "SNAPSHOT", "desc", 999L, "IBAN", true, false, false, true);
+                1L, 12345678, ReportType.CAMT052B, "1.0", "DAILY", "desc", 999L, "IBAN", true, false, false, true);
     }
 
     private static ReportMessageEnvelope envelope(boolean withPaymentTypes) {

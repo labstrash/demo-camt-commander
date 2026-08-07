@@ -10,7 +10,7 @@ package com.example.commander.domain.message;
  * which is stored separately for audit and traceability purposes.
  *
  * @param id unique identifier of the recipient
- * @param type recipient type (e.g., ORIGINATOR, BIC)
+ * @param type recipient type (e.g., SIGNER_ID, BIC)
  * @param value unique identifier of the recipient
  * @param name human-readable display name
  */

@@ -83,9 +83,8 @@ class ReportingPeriodCalculatorTest {
         ReportWindow window = calculator.calculate(ReportFrequency.DAILY, fireTime);
 
         // Point-in-time at midnight of the calendar day before the fire's date - start ==
-        // end, like SNAPSHOT but anchored to yesterday rather than the fire time. This
-        // keeps consecutive DAILY runs from ever overlapping, since every run's single
-        // instant is a fixed calendar boundary rather than a moving fire time.
+        // end. This keeps consecutive DAILY runs from ever overlapping, since every run's
+        // single instant is a fixed calendar boundary rather than a moving fire time.
         ZonedDateTime businessFireTime = fireTime.atZone(ZoneId.of("Europe/Stockholm"));
         ZonedDateTime expectedStart = businessFireTime
                 .toLocalDate()
@@ -179,18 +178,6 @@ class ReportingPeriodCalculatorTest {
 
         assertThat(window.windowStartUtc()).isEqualTo(expectedStart.toInstant());
         assertThat(window.windowEndUtc()).isEqualTo(expectedEnd.toInstant());
-    }
-
-    @Test
-    void shouldCalculateSnapshotWindow() {
-        Instant fireTime =
-                ZonedDateTime.of(2026, 1, 15, 10, 30, 0, 0, ZoneId.of("UTC")).toInstant();
-
-        ReportWindow window = calculator.calculate(ReportFrequency.SNAPSHOT, fireTime);
-
-        assertThat(window.windowStartUtc()).isEqualTo(fireTime);
-        assertThat(window.windowEndUtc()).isEqualTo(fireTime);
-        assertThat(window.duration()).isZero();
     }
 
     @Test

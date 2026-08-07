@@ -10,7 +10,6 @@ import java.util.Set;
  * and are used consistently across configuration, job scheduling, and domain logic.
  */
 public enum ReportFrequency {
-    SNAPSHOT,
     EVERY_30_MIN,
     EVERY_1_HOUR,
     EVERY_2_HOURS,

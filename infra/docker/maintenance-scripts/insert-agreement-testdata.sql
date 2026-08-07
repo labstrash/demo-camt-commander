@@ -50,11 +50,10 @@
 --
 -- REFERENCE CODES (see 01-schema-reference.sql for the full lists):
 --   ReportType:      CAMT052B, CAMT052BT, CAMT053S, CAMT053E, CAMT054D, CAMT054C
---   ReportFrequency: SNAPSHOT, EVERY_30_MIN, EVERY_1_HOUR, EVERY_2_HOURS,
+--   ReportFrequency: EVERY_30_MIN, EVERY_1_HOUR, EVERY_2_HOURS,
 --                     EVERY_4_HOURS, DAILY, ONE_TIME_PER_DAY,
 --                     FOUR_TIMES_PER_DAY, EIGHT_TIMES_PER_DAY
---   PaymentType:     ALL, CREDIT_TRANSFER, DIRECT_DEBIT, INSTANT_PAYMENT,
---                     ALIAS_PAYMENT
+--   PaymentType:     ALL, INCALIAS, INSTDOM
 -- =============================================================================
 
 USE [REPORTDB];
@@ -79,7 +78,7 @@ DECLARE @EngagementId    NVARCHAR(15)  = N'091111111111';
 DECLARE @Channel         NVARCHAR(100) = N'Customer Portal';
 DECLARE @Track           NVARCHAR(15)  = N'STANDARD';
 
-DECLARE @RecipientType   NVARCHAR(20)  = N'ORIGINATOR';
+DECLARE @RecipientType   NVARCHAR(20)  = N'SIGNER_ID';
 DECLARE @RecipientValue  NVARCHAR(100) = N'TESTDATA-0001';
 DECLARE @RecipientName   NVARCHAR(100) = N'Test Data Recipient';
 
@@ -128,8 +127,8 @@ DECLARE @PaymentTypeAssignments TABLE (
 );
 INSERT INTO @PaymentTypeAssignments (ScopeSeq, PtaSeq, PaymentType)
 VALUES
-    (1, 1, N'CREDIT_TRANSFER'),
-    (1, 2, N'DIRECT_DEBIT'),
+    (1, 1, N'INSTDOM'),
+    (1, 2, N'INCALIAS'),
     (2, 1, N'ALL');
     -- add / remove rows as needed
 

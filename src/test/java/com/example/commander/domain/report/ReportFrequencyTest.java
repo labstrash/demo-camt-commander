@@ -24,7 +24,6 @@ class ReportFrequencyTest {
         assertThat(ReportFrequency.EVERY_1_HOUR.isWindowTimeFrequency()).isFalse();
         assertThat(ReportFrequency.EVERY_2_HOURS.isWindowTimeFrequency()).isFalse();
         assertThat(ReportFrequency.EVERY_4_HOURS.isWindowTimeFrequency()).isFalse();
-        assertThat(ReportFrequency.SNAPSHOT.isWindowTimeFrequency()).isFalse();
     }
 
     @Test

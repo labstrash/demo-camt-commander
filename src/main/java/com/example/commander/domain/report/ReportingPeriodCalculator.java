@@ -24,13 +24,11 @@ import org.springframework.stereotype.Component;
  * converted to UTC at the end, ensuring consistent window boundaries regardless
  * of system timezone.
  *
- * <p>Supports four window calculation strategies:
+ * <p>Supports three window calculation strategies:
  * <ul>
  *   <li><b>Rolling intervals</b> (EVERY_30_MIN, EVERY_1_HOUR, etc.): Fixed duration ending at fire time</li>
- *   <li><b>Calendar-day</b> (DAILY): Point-in-time at midnight of the previous day (start ==
- *       end), like SNAPSHOT but for the previous calendar day rather than the fire time</li>
+ *   <li><b>Calendar-day</b> (DAILY): Point-in-time at midnight of the previous day (start == end)</li>
  *   <li><b>Boundary-based</b> (ONE_TIME_PER_DAY, FOUR_TIMES_PER_DAY, etc.): Fixed clock-time boundaries</li>
- *   <li><b>Point-in-time</b> (SNAPSHOT): Zero-duration window at fire time</li>
  * </ul>
  */
 @Component
@@ -120,10 +118,6 @@ public class ReportingPeriodCalculator {
             ZonedDateTime[] bounds = resolveWindowTimeBounds(fireTimeLocal.toLocalDate(), boundaries, windowSequence);
             start = bounds[0];
             end = bounds[1];
-
-        } else if (frequency == ReportFrequency.SNAPSHOT) {
-            start = fireTimeLocal;
-            end = fireTimeLocal;
 
         } else {
             throw new IllegalArgumentException("Unhandled ReportFrequency: " + frequency);
