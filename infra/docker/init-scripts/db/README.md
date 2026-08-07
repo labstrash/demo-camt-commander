@@ -1,7 +1,16 @@
-# CAMT Schema - Clean Production Deployment Scripts
+# CAMT Schema - Deployment Scripts
 
 ## Overview
-This set of SQL scripts performs a **clean deployment** of the CAMT (Cash Management) reporting schema for the Corporate Banking Reporting Agreement System. These scripts are designed for production deployment where all existing CAMT objects should be completely removed and recreated from scratch.
+This set of SQL scripts performs a **clean deployment** of the CAMT (Cash Management) reporting schema for the Corporate Banking Reporting Agreement System — schema, reference/lookup data, Spring Batch job-repository tables, and the Quartz job store.
+
+The same `.sql` files are used in **two environments**, which run a different subset of them:
+
+| Environment | Runs | Entry point |
+|---|---|---|
+| **Local development** | Everything, `00` through `99`, including `08-seed-data.sql` | `infra/docker/compose.yaml`'s `sqlserver-init` service (automatic on `docker compose up`) |
+| **Production** | `01`-`07`, `97`, `99` only. `00-drop-all.sql`/`96-drop-batch.sql`/`98-drop-quartz.sql` only if explicitly confirmed. **`08-seed-data.sql` is never run.** | `../deploy-production.sh` |
+
+**`08-seed-data.sql` seeds fabricated demo/dev business data (Agreements, Recipients, ReportConfigs) — it must never be run against a real production database.** `01-schema-reference.sql`'s seed data (`ReportType`/`PaymentType`/`ReportFrequency`) is different: that's required reference data the application needs to function, identical in every environment.
 
 ## Prerequisites
 - **SQL Server** (2016 or later recommended)
@@ -10,26 +19,19 @@ This set of SQL scripts performs a **clean deployment** of the CAMT (Cash Manage
   - `CREATE SCHEMA` and `DROP SCHEMA` permissions in `REPORTDB`
   - `CREATE TABLE`, `CREATE PROCEDURE` permissions
   - `ALTER` permissions on the database
-- **Backup**: Ensure you have a full backup of the `REPORTDB` database before running these scripts
+- **Backup**: Ensure you have a full backup of the `REPORTDB` database before running the drop scripts against any environment that holds real data
 
 ## ⚠️ WARNING
-**These scripts will permanently delete ALL existing objects in the CAMT schema including:**
-- All tables and their data
-- All stored procedures
-- All indexes and constraints
-- The CAMT schema itself
+**`00-drop-all.sql`, `96-drop-batch.sql`, and `98-drop-quartz.sql` permanently delete existing objects** (the CAMT schema and its data, Spring Batch's `BATCH_*` tables, and Quartz's `QRTZ_*` tables, respectively).
 
-**Do NOT run these scripts if:**
-- You have production data in the CAMT schema
-- Other applications depend on existing CAMT objects
-- You haven't taken a backup
+**Do NOT run these against a database that holds real data unless you have a backup and intend to lose everything in scope.** `deploy-production.sh` gates all three behind an explicit `--confirm-drop` flag plus typing the target database name back, specifically so this can't happen by accident.
 
-## Script Execution Order
+## Script Execution Order (local development — everything)
 Execute the scripts in the following order:
 
 | Order | Script File | Purpose |
 |-------|-------------|---------|
-| 1 | `00-drop-all.sql` | **CLEANUP**: Drops the entire CAMT schema and all its objects |
+| 1 | `00-drop-all.sql` | **CLEANUP** (local-only). Drops the entire CAMT schema and all its objects |
 | 2 | `01-schema-reference.sql` | Creates CAMT schema, reference tables (ReportType, PaymentType, ReportFrequency) and loads seed data |
 | 3 | `02-schema-sequence.sql` | Creates AgreementSequence table and GetNextAgreementSequence stored procedure |
 | 4 | `03-schema-agreement.sql` | Creates core agreement tables: Recipient, Agreement, AgreementContact, AgreementVersion |
@@ -37,72 +39,38 @@ Execute the scripts in the following order:
 | 6 | `05-schema-report.sql` | Creates report configuration tables: ReportConfig, ReportAgreementScope |
 | 7 | `06-schema-audit-deadletter.sql` | Creates DeadLetterMessage and ReportCommandAudit tables |
 | 8 | `07-schema-fetch-config.sql` | Creates the `dbo.BigIntIdList` table type for id-set query parameters |
-| 9 | `08-seed-data.sql` | Seeds demo/dev data: 2 happy-path scenarios plus 3 fetch-config read-path edge cases (zero-scope config, dangling PTA, multi-scope fan-in) |
-| 10 | `96-drop-batch.sql` | **CLEANUP**: Drops all Spring Batch (`BATCH_*`) job repository objects |
+| 9 | `08-seed-data.sql` | **Local-only.** Seeds demo/dev data: 2 happy-path scenarios plus 3 fetch-config read-path edge cases (zero-scope config, dangling PTA, multi-scope fan-in) |
+| 10 | `96-drop-batch.sql` | **CLEANUP** (local-only). Drops all Spring Batch (`BATCH_*`) job repository objects |
 | 11 | `97-schema-batch.sql` | Creates the Spring Batch job repository tables and sequences |
-| 12 | `98-drop-quartz.sql` | **CLEANUP**: Drops all Quartz (`QRTZ_*`) job store objects |
+| 12 | `98-drop-quartz.sql` | **CLEANUP** (local-only). Drops all Quartz (`QRTZ_*`) job store objects |
 | 13 | `99-schema-quartz.sql` | Creates the Quartz JDBC job store tables, foreign keys, and indexes |
 
 `96`-`99` are numbered out of sequence deliberately: Spring Batch and Quartz are both unrelated to the CAMT schema, so keeping their drop/create pairs together at the end leaves room to add more CAMT-related scripts (08, 09, ...) without renumbering.
 
 ## How to Run
 
-### Option 1: SQL Server Management Studio (SSMS)
-1. Open SSMS and connect to your database server
-2. Select the `REPORTDB` database in the query window dropdown
-3. Open each script file in order (00 through 08, then 96 through 99)
-4. Execute each script completely before moving to the next
+### Local development
+Handled automatically by `docker compose -f infra/docker/compose.yaml up` — the `sqlserver-init` service runs every script above, in order, every time. Nothing to run manually.
 
-### Option 2: SQLCMD
+### Production
+Use `../deploy-production.sh` — see that script's own header comment for full usage. Summary:
+
 ```bash
-sqlcmd -S <server_name> -d REPORTDB -i 00-drop-all.sql
-sqlcmd -S <server_name> -d REPORTDB -i 01-schema-reference.sql
-sqlcmd -S <server_name> -d REPORTDB -i 02-schema-sequence.sql
-sqlcmd -S <server_name> -d REPORTDB -i 03-schema-agreement.sql
-sqlcmd -S <server_name> -d REPORTDB -i 04-schema-scope.sql
-sqlcmd -S <server_name> -d REPORTDB -i 05-schema-report.sql
-sqlcmd -S <server_name> -d REPORTDB -i 06-schema-audit-deadletter.sql
-sqlcmd -S <server_name> -d REPORTDB -i 07-schema-fetch-config.sql
-sqlcmd -S <server_name> -d REPORTDB -i 08-seed-data.sql
-sqlcmd -S <server_name> -d REPORTDB -i 96-drop-batch.sql
-sqlcmd -S <server_name> -d REPORTDB -i 97-schema-batch.sql
-sqlcmd -S <server_name> -d REPORTDB -i 98-drop-quartz.sql
-sqlcmd -S <server_name> -d REPORTDB -i 99-schema-quartz.sql
+DB_SERVER=myserver.example.com \
+DB_USER=sa \
+DB_PASSWORD='...' \
+  ../deploy-production.sh                # schema + reference data only, no drop
+
+DB_SERVER=myserver.example.com \
+DB_USER=sa \
+DB_PASSWORD='...' \
+  ../deploy-production.sh --confirm-drop # prompts to confirm, then drops + recreates everything
 ```
 
-### Option 3: PowerShell (Windows)
-```powershell
-$server = "your_server_name"
-$database = "REPORTDB"
-$scripts = @("00-drop-all.sql", "01-schema-reference.sql", "02-schema-sequence.sql", "03-schema-agreement.sql", "04-schema-scope.sql", "05-schema-report.sql", "06-schema-audit-deadletter.sql", "07-schema-fetch-config.sql", "08-seed-data.sql", "96-drop-batch.sql", "97-schema-batch.sql", "98-drop-quartz.sql", "99-schema-quartz.sql")
+It runs the exact same `01`-`07`, `97`, `99` files listed above (no duplicated SQL), skips `08-seed-data.sql` unconditionally, and only runs the three drop scripts if `--confirm-drop` is passed and the target database name is typed back at the confirmation prompt.
 
-foreach ($script in $scripts) {
-    Write-Host "Executing $script..."
-    sqlcmd -S $server -d $database -i $script
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Script $script failed!"
-        break
-    }
-    Write-Host "Completed $script successfully."
-}
-```
-
-### Option 4: Linux/macOS (sqlcmd)
-```bash
-sqlcmd -S <server_name> -d REPORTDB -i 00-drop-all.sql && \
-sqlcmd -S <server_name> -d REPORTDB -i 01-schema-reference.sql && \
-sqlcmd -S <server_name> -d REPORTDB -i 02-schema-sequence.sql && \
-sqlcmd -S <server_name> -d REPORTDB -i 03-schema-agreement.sql && \
-sqlcmd -S <server_name> -d REPORTDB -i 04-schema-scope.sql && \
-sqlcmd -S <server_name> -d REPORTDB -i 05-schema-report.sql && \
-sqlcmd -S <server_name> -d REPORTDB -i 06-schema-audit-deadletter.sql && \
-sqlcmd -S <server_name> -d REPORTDB -i 07-schema-fetch-config.sql && \
-sqlcmd -S <server_name> -d REPORTDB -i 08-seed-data.sql && \
-sqlcmd -S <server_name> -d REPORTDB -i 96-drop-batch.sql && \
-sqlcmd -S <server_name> -d REPORTDB -i 97-schema-batch.sql && \
-sqlcmd -S <server_name> -d REPORTDB -i 98-drop-quartz.sql && \
-sqlcmd -S <server_name> -d REPORTDB -i 99-schema-quartz.sql
-```
+### Manual (SSMS / ad-hoc sqlcmd)
+If you need to run these by hand against either environment, open/run the files from the table above in order — for production, skip `00`, `08`, `96`, and `98` unless you specifically intend a full reset (and have a backup).
 
 ## What Each Script Does
 
@@ -338,27 +306,36 @@ These columns are validated by Java enums at the application level:
 
 ## File Structure
 ```
-db/
-├── 00-drop-all.sql
-├── 01-schema-reference.sql
-├── 02-schema-sequence.sql
-├── 03-schema-agreement.sql
-├── 04-schema-scope.sql
-├── 05-schema-report.sql
-├── 06-schema-audit-deadletter.sql
-├── 07-schema-fetch-config.sql
-├── 08-seed-data.sql
-├── 96-drop-batch.sql
-├── 97-schema-batch.sql
-├── 98-drop-quartz.sql
-├── 99-schema-quartz.sql
-└── README.md
+infra/docker/init-scripts/
+├── deploy-production.sh      # production entry point — see its header comment
+└── db/
+    ├── 00-drop-all.sql       # local-only
+    ├── 01-schema-reference.sql
+    ├── 02-schema-sequence.sql
+    ├── 03-schema-agreement.sql
+    ├── 04-schema-scope.sql
+    ├── 05-schema-report.sql
+    ├── 06-schema-audit-deadletter.sql
+    ├── 07-schema-fetch-config.sql
+    ├── 08-seed-data.sql      # local-only — fabricated demo data, never for production
+    ├── 96-drop-batch.sql     # local-only
+    ├── 97-schema-batch.sql
+    ├── 98-drop-quartz.sql    # local-only
+    ├── 99-schema-quartz.sql
+    └── README.md
 ```
 
 ## Support
 For issues with these scripts, contact your database administrator or development team.
 
 ## Version History
+- **2026-08-07 (latest)**: Split local-development vs. production usage explicitly. Added
+  `../deploy-production.sh`, which runs the same `01`-`07`/`97`/`99` files (no duplicated SQL)
+  against a production target, always skips `08-seed-data.sql`, and gates the three drop
+  scripts behind an explicit `--confirm-drop` flag plus a typed database-name confirmation.
+  This README previously listed `08-seed-data.sql` as step 9 of "the" production deployment
+  sequence with no caveat — corrected, since that script seeds fabricated demo business data
+  that must never reach a real production database.
 - **2026-07-11 (latest)**: Added `96-drop-batch.sql` / `97-schema-batch.sql` (Spring Batch `JobRepository` metadata tables + sequences, Phase 4 batch pipeline), numbered ahead of Quartz's `98`/`99` pair so both non-CAMT drop/create pairs sit together at the end of the chain, wired into `compose.yaml`
 - **2026-07-11 (later)**: Added `08-seed-data.sql`, wired into the automated `compose.yaml` init chain
   - Retires the old top-level `infra/docker/init-scripts/02-seed.sql`, which had been orphaned from the init chain during the `db/` restructure
