@@ -1,9 +1,9 @@
 package com.example.commander.adapter.message;
 
+import com.example.commander.adapter.message.ext.ExtMessageListener;
+import com.example.commander.adapter.message.ext.ExtProperties;
 import com.example.commander.adapter.message.ondemand.OnDemandMessageListener;
 import com.example.commander.adapter.message.ondemand.OnDemandProperties;
-import com.example.commander.adapter.message.pht.PhtMessageListener;
-import com.example.commander.adapter.message.pht.PhtProperties;
 import jakarta.jms.ConnectionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,12 +15,12 @@ import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 
 /**
  * Wires the {@code @JmsListener} container factories for every inbound listener in this
- * application — {@link OnDemandMessageListener} and {@link PhtMessageListener} — from one
+ * application — {@link OnDemandMessageListener} and {@link ExtMessageListener} — from one
  * shared construction helper rather than duplicating it per listener.
  *
  * <p>Each factory bean is still independently {@code @ConditionalOnProperty}-gated (Spring
  * supports this at the {@code @Bean} method level) so the two queues stay independently
- * toggleable — {@code commander.ondemand.enabled}/{@code commander.pht.enabled} — and each
+ * toggleable — {@code commander.ondemand.enabled}/{@code commander.ext.enabled} — and each
  * keeps its own concurrency setting.
  *
  * <p>Sessions are transacted: when a listener's processing throws, the session rolls back and
@@ -45,12 +45,12 @@ public class InboundMqListenerConfig {
     }
 
     @Bean
-    @ConditionalOnProperty(prefix = "commander.pht", name = "enabled", havingValue = "true")
-    public DefaultJmsListenerContainerFactory phtListenerContainerFactory(
+    @ConditionalOnProperty(prefix = "commander.ext", name = "enabled", havingValue = "true")
+    public DefaultJmsListenerContainerFactory extListenerContainerFactory(
             ConnectionFactory connectionFactory,
             DefaultJmsListenerContainerFactoryConfigurer configurer,
-            PhtProperties properties) {
-        return buildFactory(connectionFactory, configurer, properties.getConcurrency(), "PHT");
+            ExtProperties properties) {
+        return buildFactory(connectionFactory, configurer, properties.getConcurrency(), "EXT");
     }
 
     private DefaultJmsListenerContainerFactory buildFactory(

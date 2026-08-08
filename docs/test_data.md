@@ -1,6 +1,6 @@
-# Manual Test Messages — On-Demand & PHT Queues
+# Manual Test Messages — On-Demand & EXT Queues
 
-Sample messages for manually exercising `CAMT.ONDEMAND.QUEUE` and `CAMT.PHT.QUEUE` against a
+Sample messages for manually exercising `CAMT.ONDEMAND.QUEUE` and `CAMT.EXT.QUEUE` against a
 freshly seeded local environment (`infra/docker/init-scripts/db/08-seed-data.sql`, Section A).
 All recipient/config/agreement values below are real seeded rows, not invented — the happy-path
 messages will actually resolve and produce an outbound message.
@@ -10,10 +10,10 @@ messages will actually resolve and produce an outbound message.
 1. **Enable both listeners** — both default to `false` in `application.properties`:
    ```
    commander.ondemand.enabled=true
-   commander.pht.enabled=true
+   commander.ext.enabled=true
    ```
    Nothing consumes either queue until these are set (either edit the file or override via
-   `-Dcommander.ondemand.enabled=true -Dcommander.pht.enabled=true` / env vars) and the app is
+   `-Dcommander.ondemand.enabled=true -Dcommander.ext.enabled=true` / env vars) and the app is
    (re)started.
 2. **Seed data must be loaded** — `docker compose up` in `infra/docker/` runs `08-seed-data.sql`
    as part of `sqlserver-init`. The scenarios below use Section A's two recipients.
@@ -82,9 +82,9 @@ Expected: no outbound message; one audit row, `status = REJECTED_INVALID_WINDOW`
 
 ---
 
-## PHT — `CAMT.PHT.QUEUE`
+## EXT — `CAMT.EXT.QUEUE`
 
-Semicolon-delimited plain text (see `docs/pht.txt`):
+Semicolon-delimited plain text (see `docs/ext.txt`):
 `messageLength;versionNumber;messageDate;messageTime;accountOwner;accountCount` header, followed
 by `accountCount` triplets of `(clearingNumber;accountNumber;balance)`. Sent as a `TextMessage`
 or `BytesMessage` — both are handled identically.
@@ -92,7 +92,7 @@ or `BytesMessage` — both are handled identically.
 ### 1. Happy path — resolves and sends
 
 Uses Section A's `Agreement` "Agreement Two" (`EngagementId = 065561959304`), whose
-`AgreementScope` is `ReportType = CAMT052B` (matches `commander.pht.report-type`'s default),
+`AgreementScope` is `ReportType = CAMT052B` (matches `commander.ext.report-type`'s default),
 resolving to `Recipient` "Team Nirvana B" and `ReportConfig 10000002` (`CAMT052B`, `V02`,
 active, **bundled**), which has exactly one account: `ClearingNumber 83279 / AccountNumber
 503797518`.
@@ -114,17 +114,17 @@ delivered to `CAMT.052B.QUEUE`, one `CAMT.ReportCommandAudit` row with `status =
 ```
 
 Expected: `AgreementScopeRepository` finds no match — the message is logged and dropped.
-**Unlike on-demand, PHT resolution misses never write an audit row** (no request-shaped input
-to attribute one to) — check the application log for `No active agreement scope for PHT
+**Unlike on-demand, EXT resolution misses never write an audit row** (no request-shaped input
+to attribute one to) — check the application log for `No active agreement scope for EXT
 accountOwner=...` instead.
 
 ### 3. Negative — malformed wire format → dropped, no audit row
 
 ```
-not a valid pht message
+not a valid ext message
 ```
 
-Expected: `PhtMessageParser` throws `IllegalArgumentException` inside the listener's catch-all;
+Expected: `ExtMessageParser` throws `IllegalArgumentException` inside the listener's catch-all;
 logged as a parse failure, container keeps running, nothing delivered.
 
 ---
@@ -138,8 +138,8 @@ Using the IBM MQ sample utility inside the `ibmmq` container (queue manager `QM1
 # On-demand — paste the JSON, then Ctrl-D (Linux/macOS) to send
 docker exec -it ibmmq /opt/mqm/samp/bin/amqsput CAMT.ONDEMAND.QUEUE QM1
 
-# PHT — paste the semicolon-delimited line, then Ctrl-D to send
-docker exec -it ibmmq /opt/mqm/samp/bin/amqsput CAMT.PHT.QUEUE QM1
+# EXT — paste the semicolon-delimited line, then Ctrl-D to send
+docker exec -it ibmmq /opt/mqm/samp/bin/amqsput CAMT.EXT.QUEUE QM1
 ```
 
 Each line typed before Ctrl-D becomes one message — paste a single-line JSON (or use the
@@ -152,7 +152,7 @@ one message per line, so keep the JSON on one line if pasting directly).
   `REPORTDB` SQL Server instance (`localhost:1433`, `sa` / `YourStrong!Passw0rd`).
 - **Outbound message**: read it back off the target queue the same way —
   `docker exec -it ibmmq /opt/mqm/samp/bin/amqsget CAMT.054C.QUEUE QM1` (on-demand scenario 1) or
-  `CAMT.052B.QUEUE` (PHT scenario 1) — `amqsget` drains the queue, so only do this after
+  `CAMT.052B.QUEUE` (EXT scenario 1) — `amqsget` drains the queue, so only do this after
   confirming the audit row.
 - **Application log**: rejections/drops that don't reach delivery (on-demand's `REJECTED_*`,
-  every PHT resolution miss) are logged at `WARN`/`INFO` even when no audit row is written.
+  every EXT resolution miss) are logged at `WARN`/`INFO` even when no audit row is written.

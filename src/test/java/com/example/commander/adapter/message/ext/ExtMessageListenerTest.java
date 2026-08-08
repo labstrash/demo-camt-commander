@@ -1,4 +1,4 @@
-package com.example.commander.adapter.message.pht;
+package com.example.commander.adapter.message.ext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -8,9 +8,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.example.commander.application.PhtReportOrchestrationService;
-import com.example.commander.domain.pht.PhtBalanceMessage;
-import com.example.commander.domain.pht.PhtMessageParser;
+import com.example.commander.application.ExtReportOrchestrationService;
+import com.example.commander.domain.ext.ExtBalanceMessage;
+import com.example.commander.domain.ext.ExtMessageParser;
 import jakarta.jms.BytesMessage;
 import jakarta.jms.JMSException;
 import jakarta.jms.TextMessage;
@@ -24,7 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
 @ExtendWith(MockitoExtension.class)
-class PhtMessageListenerTest {
+class ExtMessageListenerTest {
 
     private static final String SAMPLE = "192;01;20260731;173041;062021002635;03;"
             + "81231;1234564917;4521,94;4521,94;"
@@ -32,7 +32,7 @@ class PhtMessageListenerTest {
             + "81231;1234568055;-579660,07;-579660,07";
 
     @Mock
-    private PhtReportOrchestrationService orchestrationService;
+    private ExtReportOrchestrationService orchestrationService;
 
     @Mock
     private TextMessage textMessage;
@@ -40,15 +40,15 @@ class PhtMessageListenerTest {
     @Mock
     private BytesMessage bytesMessage;
 
-    private final PhtMessageParser parser = new PhtMessageParser();
+    private final ExtMessageParser parser = new ExtMessageParser();
 
     @Test
     void parsesATextMessageAndDispatchesToTheOrchestrationService() throws JMSException, UnsupportedEncodingException {
         when(textMessage.getText()).thenReturn(SAMPLE);
 
-        new PhtMessageListener(parser, orchestrationService).onMessage(textMessage);
+        new ExtMessageListener(parser, orchestrationService).onMessage(textMessage);
 
-        ArgumentCaptor<PhtBalanceMessage> captor = ArgumentCaptor.forClass(PhtBalanceMessage.class);
+        ArgumentCaptor<ExtBalanceMessage> captor = ArgumentCaptor.forClass(ExtBalanceMessage.class);
         verify(orchestrationService).process(captor.capture());
         assertThat(captor.getValue().accountOwner()).isEqualTo("062021002635");
         assertThat(captor.getValue().accounts()).hasSize(3);
@@ -66,15 +66,15 @@ class PhtMessageListenerTest {
         };
         when(bytesMessage.readBytes(any(byte[].class), anyInt())).thenAnswer(fillBuffer);
 
-        new PhtMessageListener(parser, orchestrationService).onMessage(bytesMessage);
+        new ExtMessageListener(parser, orchestrationService).onMessage(bytesMessage);
 
         verify(orchestrationService).process(any());
     }
 
     @Test
     void malformedMessagePropagatesSoTheContainerRollsBackAndMqRedelivers() throws JMSException {
-        when(textMessage.getText()).thenReturn("not a valid pht message");
-        PhtMessageListener listener = new PhtMessageListener(parser, orchestrationService);
+        when(textMessage.getText()).thenReturn("not a valid ext message");
+        ExtMessageListener listener = new ExtMessageListener(parser, orchestrationService);
 
         assertThatThrownBy(() -> listener.onMessage(textMessage)).isInstanceOf(IllegalArgumentException.class);
 
@@ -85,7 +85,7 @@ class PhtMessageListenerTest {
     void emptyBodyIsIgnoredWithoutDispatching() throws JMSException, UnsupportedEncodingException {
         when(textMessage.getText()).thenReturn("   ");
 
-        new PhtMessageListener(parser, orchestrationService).onMessage(textMessage);
+        new ExtMessageListener(parser, orchestrationService).onMessage(textMessage);
 
         verify(orchestrationService, never()).process(any());
     }
@@ -96,7 +96,7 @@ class PhtMessageListenerTest {
         org.mockito.Mockito.doThrow(new RuntimeException("boom"))
                 .when(orchestrationService)
                 .process(any());
-        PhtMessageListener listener = new PhtMessageListener(parser, orchestrationService);
+        ExtMessageListener listener = new ExtMessageListener(parser, orchestrationService);
 
         assertThatThrownBy(() -> listener.onMessage(textMessage))
                 .isInstanceOf(RuntimeException.class)

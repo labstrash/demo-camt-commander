@@ -1,7 +1,7 @@
 package com.example.commander.domain.message;
 
 /**
- * A balance/settlement amount for one account, supplied externally (e.g. by the PHT balance
+ * A balance/settlement amount for one account, supplied externally (e.g. by the EXT balance
  * use case) rather than read live downstream like every other report path.
  *
  * <p>Kept as the source system's own {@code String} format (signed decimal with comma, e.g.

@@ -1,12 +1,14 @@
 package com.example.commander.application;
 
 import com.example.commander.adapter.message.MqProperties;
-import com.example.commander.adapter.message.pht.PhtProperties;
+import com.example.commander.adapter.message.ext.ExtProperties;
 import com.example.commander.adapter.scheduling.SchedulingProperties;
 import com.example.commander.domain.assembly.ReportMessageAssembler;
 import com.example.commander.domain.config.RecipientRow;
 import com.example.commander.domain.config.ReportConfigRow;
 import com.example.commander.domain.config.ReportConfigTree;
+import com.example.commander.domain.ext.ExtAccountBalance;
+import com.example.commander.domain.ext.ExtBalanceMessage;
 import com.example.commander.domain.message.AccountBalance;
 import com.example.commander.domain.message.AccountKey;
 import com.example.commander.domain.message.AssemblyContext;
@@ -16,8 +18,6 @@ import com.example.commander.domain.message.ReportContext;
 import com.example.commander.domain.message.ReportMessageEnvelope;
 import com.example.commander.domain.message.ReportType;
 import com.example.commander.domain.message.TriggerType;
-import com.example.commander.domain.pht.PhtAccountBalance;
-import com.example.commander.domain.pht.PhtBalanceMessage;
 import com.example.commander.domain.report.ReportWindow;
 import com.example.commander.port.AgreementScopeRepository;
 import com.example.commander.port.ReportConfigRepository;
@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 /**
- * Orchestrates a PHT balance push: resolve the recipient from the engagement identifier
+ * Orchestrates a EXT balance push: resolve the recipient from the engagement identifier
  * carried in the message, resolve its {@code ReportConfig} exactly as the on-demand path does,
  * then assemble and deliver through the very same {@link ReportMessageAssembler}/{@link
  * ReportMessageDeliveryService} path every other source uses — the message's parsed account
@@ -46,15 +46,15 @@ import org.springframework.stereotype.Service;
  * ({@code isBundled}) like every other one.
  *
  * <p>Every resolution miss is logged and the message is dropped, never thrown — a malformed
- * or unrecognized PHT push must not crash its caller ({@code PhtMessageListener}'s listener
+ * or unrecognized EXT push must not crash its caller ({@code ExtMessageListener}'s listener
  * container). Likewise, an assembled message with nothing matched (no account in the resolved
  * config's tree was covered by this push) is dropped rather than delivered — an empty balance
  * report has nothing to tell the recipient.
  */
 @Service
-public class PhtReportOrchestrationService {
+public class ExtReportOrchestrationService {
 
-    private static final Logger log = LoggerFactory.getLogger(PhtReportOrchestrationService.class);
+    private static final Logger log = LoggerFactory.getLogger(ExtReportOrchestrationService.class);
 
     private static final DateTimeFormatter MESSAGE_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
     private static final DateTimeFormatter MESSAGE_TIME_FORMAT = DateTimeFormatter.ofPattern("HHmmss");
@@ -65,17 +65,17 @@ public class PhtReportOrchestrationService {
     private final ReportMessageAssembler reportMessageAssembler;
     private final ReportMessageDeliveryService deliveryService;
     private final MqProperties mqProperties;
-    private final PhtProperties phtProperties;
+    private final ExtProperties extProperties;
     private final ZoneId businessZone;
 
-    public PhtReportOrchestrationService(
+    public ExtReportOrchestrationService(
             AgreementScopeRepository agreementScopeRepository,
             ReportConfigRepository reportConfigRepository,
             ReportConfigTreeRepository reportConfigTreeRepository,
             ReportMessageAssembler reportMessageAssembler,
             ReportMessageDeliveryService deliveryService,
             MqProperties mqProperties,
-            PhtProperties phtProperties,
+            ExtProperties extProperties,
             SchedulingProperties schedulingProperties) {
         this.agreementScopeRepository = agreementScopeRepository;
         this.reportConfigRepository = reportConfigRepository;
@@ -83,24 +83,24 @@ public class PhtReportOrchestrationService {
         this.reportMessageAssembler = reportMessageAssembler;
         this.deliveryService = deliveryService;
         this.mqProperties = mqProperties;
-        this.phtProperties = phtProperties;
+        this.extProperties = extProperties;
         this.businessZone = ZoneId.of(schedulingProperties.getTimezone());
     }
 
     /**
-     * Processes one parsed PHT balance message: resolve → assemble → deliver.
+     * Processes one parsed EXT balance message: resolve → assemble → deliver.
      *
-     * @param phtMessage the parsed inbound message
+     * @param extMessage the parsed inbound message
      */
-    public void process(PhtBalanceMessage phtMessage) {
-        ReportType reportType = phtProperties.getReportType();
+    public void process(ExtBalanceMessage extMessage) {
+        ReportType reportType = extProperties.getReportType();
 
         Optional<Long> recipientId =
-                agreementScopeRepository.findActiveMessageRecipientId(phtMessage.accountOwner(), reportType);
+                agreementScopeRepository.findActiveMessageRecipientId(extMessage.accountOwner(), reportType);
         if (recipientId.isEmpty()) {
             log.warn(
-                    "No active agreement scope for PHT accountOwner={}, reportType={} — dropping message",
-                    phtMessage.accountOwner(),
+                    "No active agreement scope for EXT accountOwner={}, reportType={} — dropping message",
+                    extMessage.accountOwner(),
                     reportType);
             return;
         }
@@ -108,10 +108,10 @@ public class PhtReportOrchestrationService {
         Optional<RecipientRow> recipientRow = reportConfigRepository.findRecipientById(recipientId.get());
         if (recipientRow.isEmpty()) {
             log.warn(
-                    "Agreement chain resolved recipientId={} for PHT accountOwner={} but no matching Recipient"
+                    "Agreement chain resolved recipientId={} for EXT accountOwner={} but no matching Recipient"
                             + " row exists — dropping message",
                     recipientId.get(),
-                    phtMessage.accountOwner());
+                    extMessage.accountOwner());
             return;
         }
 
@@ -125,7 +125,7 @@ public class PhtReportOrchestrationService {
             return;
         }
 
-        Instant messageInstant = resolveMessageInstant(phtMessage);
+        Instant messageInstant = resolveMessageInstant(extMessage);
         Recipient recipient = new Recipient(
                 recipientRow.get().id(),
                 RecipientType.valueOf(recipientRow.get().type()),
@@ -138,7 +138,7 @@ public class PhtReportOrchestrationService {
                         TriggerType.EXTERNAL),
                 recipient,
                 null,
-                indexBalances(phtMessage));
+                indexBalances(extMessage));
 
         ReportConfigTree tree =
                 reportConfigTreeRepository.assembleTrees(List.of(config.get())).getFirst();
@@ -148,9 +148,9 @@ public class PhtReportOrchestrationService {
 
         if (envelopes.isEmpty()) {
             log.warn(
-                    "No account under configId={} matched any balance from PHT accountOwner={} — nothing to send",
+                    "No account under configId={} matched any balance from EXT accountOwner={} — nothing to send",
                     tree.config().configId(),
-                    phtMessage.accountOwner());
+                    extMessage.accountOwner());
             return;
         }
 
@@ -162,20 +162,20 @@ public class PhtReportOrchestrationService {
     }
 
     /**
-     * Parses {@code phtMessage}'s own {@code messageDate}/{@code messageTime} ({@code
+     * Parses {@code extMessage}'s own {@code messageDate}/{@code messageTime} ({@code
      * yyyyMMdd}/{@code HHmmss}) as a local timestamp in the configured business timezone and
-     * converts it to UTC — the report window reflects when PHT captured the balances, not
+     * converts it to UTC — the report window reflects when EXT captured the balances, not
      * when Commander happened to process the push.
      */
-    private Instant resolveMessageInstant(PhtBalanceMessage phtMessage) {
-        LocalDate date = LocalDate.parse(phtMessage.messageDate(), MESSAGE_DATE_FORMAT);
-        LocalTime time = LocalTime.parse(phtMessage.messageTime(), MESSAGE_TIME_FORMAT);
+    private Instant resolveMessageInstant(ExtBalanceMessage extMessage) {
+        LocalDate date = LocalDate.parse(extMessage.messageDate(), MESSAGE_DATE_FORMAT);
+        LocalTime time = LocalTime.parse(extMessage.messageTime(), MESSAGE_TIME_FORMAT);
         return ZonedDateTime.of(date, time, businessZone).toInstant();
     }
 
-    private static Map<AccountKey, AccountBalance> indexBalances(PhtBalanceMessage phtMessage) {
+    private static Map<AccountKey, AccountBalance> indexBalances(ExtBalanceMessage extMessage) {
         Map<AccountKey, AccountBalance> byAccount = new LinkedHashMap<>();
-        for (PhtAccountBalance balance : phtMessage.accounts()) {
+        for (ExtAccountBalance balance : extMessage.accounts()) {
             byAccount.put(
                     new AccountKey(balance.clearingNumber(), balance.accountNumber()),
                     new AccountBalance(balance.balance(), balance.settlementAmount()));

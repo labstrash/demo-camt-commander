@@ -17,7 +17,7 @@ public interface MessageGroupingStrategy {
      *
      * @param tree the report configuration tree
      * @param accountBalances externally supplied balances, keyed by account — empty for every
-     *     path except the PHT balance use case (see {@link
+     *     path except the EXT balance use case (see {@link
      *     com.example.commander.domain.message.AssemblyContext#accountBalances()})
      * @return list of scoped payment type groups
      */

@@ -1,18 +1,18 @@
-package com.example.commander.domain.pht;
+package com.example.commander.domain.ext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import org.junit.jupiter.api.Test;
 
-class PhtMessageParserTest {
+class ExtMessageParserTest {
 
-    private final PhtMessageParser parser = new PhtMessageParser();
+    private final ExtMessageParser parser = new ExtMessageParser();
 
     // Real sample, fixed-width space-padded balance/settlementAmount fields (16 chars each,
-    // right-justified) as PHT actually sends it — a quadruplet per account, not a triplet:
+    // right-justified) as EXT actually sends it — a quadruplet per account, not a triplet:
     // (clearingNumber;accountNumber;balance;settlementAmount). An earlier version of this
-    // parser assumed a triplet based on an incomplete extract in docs/pht.txt, whose sample
+    // parser assumed a triplet based on an incomplete extract in docs/ext.txt, whose sample
     // only ever showed balance == settlementAmount for every account and so never surfaced the
     // missing fourth field.
     private static final String SAMPLE = "192;01;20260731;173041;012345678901;03;"
@@ -22,7 +22,7 @@ class PhtMessageParserTest {
 
     @Test
     void parsesTheHeaderFields() {
-        PhtBalanceMessage message = parser.parse(SAMPLE);
+        ExtBalanceMessage message = parser.parse(SAMPLE);
 
         assertThat(message.messageLength()).isEqualTo("192");
         assertThat(message.versionNumber()).isEqualTo("01");
@@ -33,13 +33,13 @@ class PhtMessageParserTest {
 
     @Test
     void parsesEveryAccountQuadrupletTrimmingTheFixedWidthPadding() {
-        PhtBalanceMessage message = parser.parse(SAMPLE);
+        ExtBalanceMessage message = parser.parse(SAMPLE);
 
         assertThat(message.accounts())
                 .containsExactly(
-                        new PhtAccountBalance("11011", "1234567917", "4521,94", "4521,94"),
-                        new PhtAccountBalance("11011", "1234567022", "-6768017,24", "-6768017,24"),
-                        new PhtAccountBalance("11011", "1234567055", "-579660,07", "-579660,07"));
+                        new ExtAccountBalance("11011", "1234567917", "4521,94", "4521,94"),
+                        new ExtAccountBalance("11011", "1234567022", "-6768017,24", "-6768017,24"),
+                        new ExtAccountBalance("11011", "1234567055", "-579660,07", "-579660,07"));
     }
 
     @Test
@@ -48,10 +48,10 @@ class PhtMessageParserTest {
         // same value — SAMPLE alone can't catch this since both happen to be equal there.
         String distinct = "192;01;20260731;173041;012345678901;01;11011;1234567917;100,00;200,00";
 
-        PhtBalanceMessage message = parser.parse(distinct);
+        ExtBalanceMessage message = parser.parse(distinct);
 
         assertThat(message.accounts())
-                .containsExactly(new PhtAccountBalance("11011", "1234567917", "100,00", "200,00"));
+                .containsExactly(new ExtAccountBalance("11011", "1234567917", "100,00", "200,00"));
     }
 
     @Test
@@ -59,12 +59,12 @@ class PhtMessageParserTest {
         String padded = "192 ;01;20260731;173041;012345678901 ;03; 11011;1234567917 ; 4521,94; 4521,94;"
                 + "11011;1234567022;-6768017,24;-6768017,24;11011;1234567055;-579660,07;-579660,07";
 
-        PhtBalanceMessage message = parser.parse(padded);
+        ExtBalanceMessage message = parser.parse(padded);
 
         assertThat(message.messageLength()).isEqualTo("192");
         assertThat(message.accountOwner()).isEqualTo("012345678901");
         assertThat(message.accounts().getFirst())
-                .isEqualTo(new PhtAccountBalance("11011", "1234567917", "4521,94", "4521,94"));
+                .isEqualTo(new ExtAccountBalance("11011", "1234567917", "4521,94", "4521,94"));
     }
 
     @Test
@@ -100,7 +100,7 @@ class PhtMessageParserTest {
 
     @Test
     void zeroAccountsIsValid() {
-        PhtBalanceMessage message = parser.parse("192;01;20260731;173041;062021002635;00");
+        ExtBalanceMessage message = parser.parse("192;01;20260731;173041;062021002635;00");
 
         assertThat(message.accounts()).isEmpty();
     }

@@ -34,7 +34,7 @@ public class PaymentTypeGrouper {
      *
      * @param scopes the agreement scopes to group
      * @param accountBalances externally supplied balances, keyed by account — empty for every
-     *     path except the PHT balance use case; when non-empty, an account with no entry is
+     *     path except the EXT balance use case; when non-empty, an account with no entry is
      *     omitted rather than included with a null balance (see {@link
      *     com.example.commander.domain.message.AssemblyContext#accountBalances()})
      * @return list of scoped payment type groups, one per distinct payment type
@@ -72,7 +72,7 @@ public class PaymentTypeGrouper {
      *
      * @param scopes the agreement scopes to group
      * @param accountBalances externally supplied balances, keyed by account — empty for every
-     *     path except the PHT balance use case; when non-empty, an account row with no entry
+     *     path except the EXT balance use case; when non-empty, an account row with no entry
      *     produces no group at all rather than one carrying a null balance (see {@link
      *     com.example.commander.domain.message.AssemblyContext#accountBalances()})
      * @return list of scoped payment type groups, one per account/alias row

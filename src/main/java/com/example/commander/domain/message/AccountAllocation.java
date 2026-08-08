@@ -12,7 +12,7 @@ package com.example.commander.domain.message;
  * @param accountBban Basic Bank Account Number (BBAN) format
  * @param currency ISO currency code for the account
  * @param balance the account's balance, or {@code null} when not supplied (every path except
- *     the PHT balance use case — scheduled/on-demand reports read live data downstream rather
+ *     the EXT balance use case — scheduled/on-demand reports read live data downstream rather
  *     than carrying a balance in the message itself). Kept as the source system's own {@code
  *     String} format (signed decimal with comma, e.g. {@code "-579660,07"}) — no numeric
  *     parsing/rounding is done on this value anywhere in this pipeline.

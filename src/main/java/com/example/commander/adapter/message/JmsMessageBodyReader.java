@@ -8,7 +8,7 @@ import java.io.UnsupportedEncodingException;
 
 /**
  * Extracts the text body of an inbound JMS message, shared by every inbound listener in this
- * application ({@code OnDemandMessageListener}, {@code PhtMessageListener}).
+ * application ({@code OnDemandMessageListener}, {@code ExtMessageListener}).
  *
  * <p>Handles both {@link TextMessage} and {@link BytesMessage} — a bytes body is decoded using
  * the {@code JMS_IBM_CHARACTER_SET} message property (IBM MQ's own property name for the

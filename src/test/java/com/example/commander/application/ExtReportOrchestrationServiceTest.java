@@ -8,13 +8,15 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.commander.adapter.message.MqProperties;
-import com.example.commander.adapter.message.pht.PhtProperties;
+import com.example.commander.adapter.message.ext.ExtProperties;
 import com.example.commander.adapter.scheduling.SchedulingProperties;
 import com.example.commander.domain.assembly.ReportMessageAssembler;
 import com.example.commander.domain.audit.ReportCommandAuditStatus;
 import com.example.commander.domain.config.RecipientRow;
 import com.example.commander.domain.config.ReportConfigRow;
 import com.example.commander.domain.config.ReportConfigTree;
+import com.example.commander.domain.ext.ExtAccountBalance;
+import com.example.commander.domain.ext.ExtBalanceMessage;
 import com.example.commander.domain.message.AccountBalance;
 import com.example.commander.domain.message.AccountKey;
 import com.example.commander.domain.message.AssemblyContext;
@@ -25,8 +27,6 @@ import com.example.commander.domain.message.ReportMessage;
 import com.example.commander.domain.message.ReportMessageEnvelope;
 import com.example.commander.domain.message.ReportType;
 import com.example.commander.domain.message.TriggerType;
-import com.example.commander.domain.pht.PhtAccountBalance;
-import com.example.commander.domain.pht.PhtBalanceMessage;
 import com.example.commander.domain.report.ReportWindow;
 import com.example.commander.port.AgreementScopeRepository;
 import com.example.commander.port.ReportConfigRepository;
@@ -42,11 +42,11 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class PhtReportOrchestrationServiceTest {
+class ExtReportOrchestrationServiceTest {
 
     private static final Instant NOW = Instant.parse("2026-07-31T17:30:41Z");
 
-    /** {@code phtMessage()}'s {@code 20260731}/{@code 173041} as Europe/Stockholm-local (CEST, UTC+2), in UTC. */
+    /** {@code extMessage()}'s {@code 20260731}/{@code 173041} as Europe/Stockholm-local (CEST, UTC+2), in UTC. */
     private static final Instant MESSAGE_INSTANT = Instant.parse("2026-07-31T15:30:41Z");
 
     @Mock
@@ -64,21 +64,21 @@ class PhtReportOrchestrationServiceTest {
     @Mock
     private ReportMessageDeliveryService deliveryService;
 
-    private PhtReportOrchestrationService newService() {
+    private ExtReportOrchestrationService newService() {
         MqProperties mqProperties = new MqProperties();
         mqProperties.setQueues(Map.of(ReportType.CAMT052B, "CAMT.052B.QUEUE"));
-        PhtProperties phtProperties = new PhtProperties();
-        phtProperties.setReportType(ReportType.CAMT052B);
+        ExtProperties extProperties = new ExtProperties();
+        extProperties.setReportType(ReportType.CAMT052B);
         SchedulingProperties schedulingProperties = new SchedulingProperties();
         schedulingProperties.setTimezone("Europe/Stockholm");
-        return new PhtReportOrchestrationService(
+        return new ExtReportOrchestrationService(
                 agreementScopeRepository,
                 reportConfigRepository,
                 reportConfigTreeRepository,
                 reportMessageAssembler,
                 deliveryService,
                 mqProperties,
-                phtProperties,
+                extProperties,
                 schedulingProperties);
     }
 
@@ -87,7 +87,7 @@ class PhtReportOrchestrationServiceTest {
         when(agreementScopeRepository.findActiveMessageRecipientId("062021002635", ReportType.CAMT052B))
                 .thenReturn(Optional.empty());
 
-        newService().process(phtMessage());
+        newService().process(extMessage());
 
         verify(reportConfigRepository, never()).findActiveByRecipientAndReportType(any(Long.class), any());
         verify(reportMessageAssembler, never()).assemble(any(), any());
@@ -99,7 +99,7 @@ class PhtReportOrchestrationServiceTest {
                 .thenReturn(Optional.of(999L));
         when(reportConfigRepository.findRecipientById(999L)).thenReturn(Optional.empty());
 
-        newService().process(phtMessage());
+        newService().process(extMessage());
 
         verify(reportConfigRepository, never()).findActiveByRecipientAndReportType(any(Long.class), any());
     }
@@ -112,7 +112,7 @@ class PhtReportOrchestrationServiceTest {
         when(reportConfigRepository.findActiveByRecipientAndReportType(999L, ReportType.CAMT052B))
                 .thenReturn(Optional.empty());
 
-        newService().process(phtMessage());
+        newService().process(extMessage());
 
         verify(reportMessageAssembler, never()).assemble(any(), any());
     }
@@ -131,7 +131,7 @@ class PhtReportOrchestrationServiceTest {
         when(deliveryService.deliver(envelope, "CAMT.052B.QUEUE", null, null, null))
                 .thenReturn(ReportCommandAuditStatus.SENT);
 
-        newService().process(phtMessage());
+        newService().process(extMessage());
 
         verify(deliveryService).deliver(envelope, "CAMT.052B.QUEUE", null, null, null);
 
@@ -148,7 +148,7 @@ class PhtReportOrchestrationServiceTest {
     @Test
     void indexesBalanceAndSettlementAmountSeparatelyRatherThanDuplicatingBalanceIntoBoth() {
         // Regression test: indexBalances() used to duplicate the single parsed balance value
-        // into both AccountBalance fields. PHT actually sends both as distinct wire fields.
+        // into both AccountBalance fields. EXT actually sends both as distinct wire fields.
         when(agreementScopeRepository.findActiveMessageRecipientId("062021002635", ReportType.CAMT052B))
                 .thenReturn(Optional.of(999L));
         when(reportConfigRepository.findRecipientById(999L)).thenReturn(Optional.of(recipient()));
@@ -157,13 +157,13 @@ class PhtReportOrchestrationServiceTest {
         ReportConfigTree tree = new ReportConfigTree(config(), List.of());
         when(reportConfigTreeRepository.assembleTrees(List.of(config()))).thenReturn(List.of(tree));
         when(reportMessageAssembler.assemble(eq(tree), any())).thenReturn(List.of(envelope(true)));
-        PhtBalanceMessage message = new PhtBalanceMessage(
+        ExtBalanceMessage message = new ExtBalanceMessage(
                 "192",
                 "01",
                 "20260731",
                 "173041",
                 "062021002635",
-                List.of(new PhtAccountBalance("81231", "1234564917", "100,00", "200,00")));
+                List.of(new ExtAccountBalance("81231", "1234564917", "100,00", "200,00")));
 
         newService().process(message);
 
@@ -184,7 +184,7 @@ class PhtReportOrchestrationServiceTest {
         when(reportConfigTreeRepository.assembleTrees(List.of(config()))).thenReturn(List.of(tree));
         when(reportMessageAssembler.assemble(eq(tree), any())).thenReturn(List.of(envelope(true)));
 
-        newService().process(phtMessage());
+        newService().process(extMessage());
 
         ArgumentCaptor<AssemblyContext> contextCaptor = ArgumentCaptor.forClass(AssemblyContext.class);
         verify(reportMessageAssembler).assemble(eq(tree), contextCaptor.capture());
@@ -205,7 +205,7 @@ class PhtReportOrchestrationServiceTest {
         ReportMessageEnvelope second = envelope(true, "corr-id-2");
         when(reportMessageAssembler.assemble(eq(tree), any())).thenReturn(List.of(first, second));
 
-        newService().process(phtMessage());
+        newService().process(extMessage());
 
         verify(deliveryService).deliver(first, "CAMT.052B.QUEUE", null, null, null);
         verify(deliveryService).deliver(second, "CAMT.052B.QUEUE", null, null, null);
@@ -222,19 +222,19 @@ class PhtReportOrchestrationServiceTest {
         when(reportConfigTreeRepository.assembleTrees(List.of(config()))).thenReturn(List.of(tree));
         when(reportMessageAssembler.assemble(eq(tree), any())).thenReturn(List.of(envelope(false)));
 
-        newService().process(phtMessage());
+        newService().process(extMessage());
 
         verify(deliveryService, never()).deliver(any(), any(), any(), any(), any());
     }
 
-    private static PhtBalanceMessage phtMessage() {
-        return new PhtBalanceMessage(
+    private static ExtBalanceMessage extMessage() {
+        return new ExtBalanceMessage(
                 "192",
                 "01",
                 "20260731",
                 "173041",
                 "062021002635",
-                List.of(new PhtAccountBalance("81231", "1234564917", "4521,94", "4521,94")));
+                List.of(new ExtAccountBalance("81231", "1234564917", "4521,94", "4521,94")));
     }
 
     private static RecipientRow recipient() {
@@ -242,11 +242,11 @@ class PhtReportOrchestrationServiceTest {
     }
 
     private static ReportConfigRow config() {
-        // reportFrequency is a plain descriptive String here — PHT never parses/validates it,
+        // reportFrequency is a plain descriptive String here — EXT never parses/validates it,
         // since it derives its own window from the pushed message's own date/time, not from
         // any Quartz schedule. Any valid CAMT.ReportFrequency code works; DAILY is used simply
         // because it isn't one of CAMT052B's actual commander.scheduling.schedules[] entries
-        // (EVERY_30_MIN/1_HOUR/2_HOURS/4_HOURS), avoiding the appearance that this PHT-only
+        // (EVERY_30_MIN/1_HOUR/2_HOURS/4_HOURS), avoiding the appearance that this EXT-only
         // config is also Quartz-scheduled.
         return new ReportConfigRow(
                 1L, 12345678, ReportType.CAMT052B, "1.0", "DAILY", "desc", 999L, "IBAN", true, false, false, true);

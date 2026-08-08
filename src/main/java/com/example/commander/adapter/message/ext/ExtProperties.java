@@ -1,4 +1,4 @@
-package com.example.commander.adapter.message.pht;
+package com.example.commander.adapter.message.ext;
 
 import com.example.commander.adapter.message.InboundMqListenerConfig;
 import com.example.commander.domain.message.ReportType;
@@ -8,23 +8,23 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
 /**
- * Configuration for the inbound PHT balance MQ listener.
+ * Configuration for the inbound EXT balance MQ listener.
  *
  * <p>{@link #enabled} gates listener registration entirely (via {@code
- * @ConditionalOnProperty} on {@link InboundMqListenerConfig}/{@link PhtMessageListener}), same
+ * @ConditionalOnProperty} on {@link InboundMqListenerConfig}/{@link ExtMessageListener}), same
  * posture as {@link com.example.commander.adapter.message.ondemand.OnDemandProperties}.
  *
- * <p>{@link #reportType} is the fixed report type this integration always targets — PHT is a
+ * <p>{@link #reportType} is the fixed report type this integration always targets — EXT is a
  * single-purpose integration for one recipient/report config, not a dynamic per-message
  * choice (see the phase's Open Questions on {@code EngagementBank}).
  */
 @Validated
-@ConfigurationProperties(prefix = "commander.pht")
-public class PhtProperties {
+@ConfigurationProperties(prefix = "commander.ext")
+public class ExtProperties {
 
     private boolean enabled = false;
 
-    @NotBlank private String queue = "CAMT.PHT.QUEUE";
+    @NotBlank private String queue = "CAMT.EXT.QUEUE";
 
     @NotBlank private String concurrency = "1-1";
 

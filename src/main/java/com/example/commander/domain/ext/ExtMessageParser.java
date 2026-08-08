@@ -1,4 +1,4 @@
-package com.example.commander.domain.pht;
+package com.example.commander.domain.ext;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -6,8 +6,8 @@ import java.util.List;
 import org.springframework.stereotype.Component;
 
 /**
- * Parses an inbound PHT balance message's semicolon-delimited wire format into a {@link
- * PhtBalanceMessage}.
+ * Parses an inbound EXT balance message's semicolon-delimited wire format into a {@link
+ * ExtBalanceMessage}.
  *
  * <p>Format: a six-field header ({@code
  * messageLength;versionNumber;messageDate;messageTime;accountOwner;accountCount}) followed by
@@ -23,13 +23,13 @@ import org.springframework.stereotype.Component;
  * context, same posture as {@code ReportMessageAssembler}.
  */
 @Component
-public class PhtMessageParser {
+public class ExtMessageParser {
 
     private static final int HEADER_FIELD_COUNT = 6;
     private static final int ACCOUNT_FIELD_COUNT = 4;
 
     /**
-     * Parses {@code rawMessage} into a {@link PhtBalanceMessage}.
+     * Parses {@code rawMessage} into a {@link ExtBalanceMessage}.
      *
      * @param rawMessage the raw semicolon-delimited message body
      * @return the parsed message
@@ -37,16 +37,16 @@ public class PhtMessageParser {
      *     the six header fields, its {@code accountCount} field isn't a valid integer, or the
      *     total field count doesn't match {@code accountCount}
      */
-    public PhtBalanceMessage parse(String rawMessage) {
+    public ExtBalanceMessage parse(String rawMessage) {
         if (rawMessage == null || rawMessage.isBlank()) {
-            throw new IllegalArgumentException("PHT message body cannot be null or blank");
+            throw new IllegalArgumentException("EXT message body cannot be null or blank");
         }
 
         String[] fields = Arrays.stream(rawMessage.trim().split(";", -1))
                 .map(String::trim)
                 .toArray(String[]::new);
         if (fields.length < HEADER_FIELD_COUNT) {
-            throw new IllegalArgumentException("PHT message has %d field(s), expected at least %d (header)"
+            throw new IllegalArgumentException("EXT message has %d field(s), expected at least %d (header)"
                     .formatted(fields.length, HEADER_FIELD_COUNT));
         }
 
@@ -60,21 +60,21 @@ public class PhtMessageParser {
         int expectedFieldCount = HEADER_FIELD_COUNT + (accountCount * ACCOUNT_FIELD_COUNT);
         if (fields.length != expectedFieldCount) {
             throw new IllegalArgumentException(
-                    "PHT message declares accountCount=%d (expects %d field(s) total) but has %d field(s)"
+                    "EXT message declares accountCount=%d (expects %d field(s) total) but has %d field(s)"
                             .formatted(accountCount, expectedFieldCount, fields.length));
         }
 
-        List<PhtAccountBalance> accounts = new ArrayList<>(accountCount);
+        List<ExtAccountBalance> accounts = new ArrayList<>(accountCount);
         int index = HEADER_FIELD_COUNT;
         for (int i = 0; i < accountCount; i++) {
             String clearingNumber = fields[index++];
             String accountNumber = fields[index++];
             String balance = fields[index++];
             String settlementAmount = fields[index++];
-            accounts.add(new PhtAccountBalance(clearingNumber, accountNumber, balance, settlementAmount));
+            accounts.add(new ExtAccountBalance(clearingNumber, accountNumber, balance, settlementAmount));
         }
 
-        return new PhtBalanceMessage(messageLength, versionNumber, messageDate, messageTime, accountOwner, accounts);
+        return new ExtBalanceMessage(messageLength, versionNumber, messageDate, messageTime, accountOwner, accounts);
     }
 
     private static int parseAccountCount(String field) {
@@ -82,7 +82,7 @@ public class PhtMessageParser {
             return Integer.parseInt(field);
         } catch (NumberFormatException ex) {
             throw new IllegalArgumentException(
-                    "PHT message accountCount field is not a valid integer: '" + field + "'", ex);
+                    "EXT message accountCount field is not a valid integer: '" + field + "'", ex);
         }
     }
 }

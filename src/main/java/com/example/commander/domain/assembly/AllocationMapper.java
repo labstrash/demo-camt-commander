@@ -21,10 +21,10 @@ public class AllocationMapper {
      * Converts account assignment rows to account allocations, optionally attaching an
      * externally supplied balance.
      *
-     * <p>When {@code accountBalances} is empty (every path except the PHT balance use case),
+     * <p>When {@code accountBalances} is empty (every path except the EXT balance use case),
      * every account is included with {@code balance}/{@code settlementAmount} left null —
      * identical to this method's behavior before external balances existed. When non-empty, an
-     * account with no matching entry is omitted entirely — a PHT push only ever covers the
+     * account with no matching entry is omitted entirely — a EXT push only ever covers the
      * accounts it actually carries data for, so an unmatched account has nothing to report this
      * round rather than an "unknown" balance.
      *

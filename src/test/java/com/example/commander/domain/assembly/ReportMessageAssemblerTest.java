@@ -165,7 +165,7 @@ class ReportMessageAssemblerTest {
 
     @Test
     void bundledWithAccountBalancesAttachesBalanceToTheMatchedAccount() {
-        // Real-collaborator coverage for the PHT balance use case's threading of
+        // Real-collaborator coverage for the EXT balance use case's threading of
         // AssemblyContext.accountBalances() through the whole reused pipeline (strategy ->
         // PaymentTypeGrouper -> AllocationMapper), not just PaymentTypeGrouperTest's
         // grouper-level unit coverage.

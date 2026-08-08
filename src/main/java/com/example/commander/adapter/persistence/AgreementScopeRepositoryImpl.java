@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
  * JDBC implementation of {@link AgreementScopeRepository}.
  *
  * <p>Queries by {@code EngagementId} alone, not the schema's indexed {@code (EngagementBank,
- * EngagementId)} pair — the calling integration (PHT) supplies only a single engagement
+ * EngagementId)} pair — the calling integration (EXT) supplies only a single engagement
  * identifier with no separate bank code. Neither of {@code CAMT.Agreement}'s indexes
  * guarantees uniqueness on {@code EngagementId} alone; {@link JdbcRepositorySupport#singleRow}
  * throws if this assumption turns out to be wrong for real data, rather than silently picking

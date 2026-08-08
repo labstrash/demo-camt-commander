@@ -3,8 +3,8 @@ package com.example.commander;
 import com.example.commander.adapter.batch.config.BatchPipelineProperties;
 import com.example.commander.adapter.message.MqProperties;
 import com.example.commander.adapter.message.MqResilienceProperties;
+import com.example.commander.adapter.message.ext.ExtProperties;
 import com.example.commander.adapter.message.ondemand.OnDemandProperties;
-import com.example.commander.adapter.message.pht.PhtProperties;
 import com.example.commander.adapter.persistence.ReportConfigReadProperties;
 import com.example.commander.adapter.scheduling.AuditRetentionProperties;
 import com.example.commander.adapter.scheduling.SchedulingProperties;
@@ -23,7 +23,7 @@ import org.springframework.jms.annotation.EnableJms;
     MqProperties.class,
     AuditRetentionProperties.class,
     OnDemandProperties.class,
-    PhtProperties.class
+    ExtProperties.class
 })
 public class DemoCamtCommanderApplication {
 
