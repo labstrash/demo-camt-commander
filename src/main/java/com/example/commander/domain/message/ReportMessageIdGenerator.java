@@ -50,18 +50,10 @@ public class ReportMessageIdGenerator {
     public String generateMessageId(long reportId, ReportType reportType) {
         Objects.requireNonNull(reportType, "reportType cannot be null");
 
-        String typeCode = extractTypeCode(reportType.name());
         String timestamp = generateTimestamp();
         String pageNumber = getPageSuffix();
 
-        return String.format("%s%s%d%s%s", prefix, typeCode, reportId, timestamp, pageNumber);
-    }
-
-    private String extractTypeCode(String reportType) {
-        // Extract from position 5 (0-indexed) which is the 6th character. Safe unconditionally
-        // — every ReportType constant name is at least 8 characters.
-        // This is fragile - consider using a more explicit mapping in future
-        return reportType.substring(5);
+        return String.format("%s%s%d%s%s", prefix, reportType.code(), reportId, timestamp, pageNumber);
     }
 
     private String generateTimestamp() {

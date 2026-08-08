@@ -10,10 +10,26 @@ package com.example.commander.domain.message;
  * {@code @ConfigurationProperties} binding boundaries.
  */
 public enum ReportType {
-    CAMT052B,
-    CAMT052BT,
-    CAMT053S,
-    CAMT053E,
-    CAMT054D,
-    CAMT054C
+    CAMT052B("52B"),
+    CAMT052BT("52BT"),
+    CAMT053S("53S"),
+    CAMT053E("53E"),
+    CAMT054D("54D"),
+    CAMT054C("54C");
+
+    private final String code;
+
+    ReportType(String code) {
+        this.code = code;
+    }
+
+    /**
+     * The short code embedded in generated report message IDs — see {@link
+     * com.example.commander.domain.message.ReportMessageIdGenerator}. Explicit per constant
+     * rather than derived, so adding a report type forces a deliberate choice of its code
+     * instead of relying on every constant name being long enough for a fixed-offset substring.
+     */
+    public String code() {
+        return code;
+    }
 }

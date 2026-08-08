@@ -8,9 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
@@ -33,8 +31,6 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ReportingPeriodCalculator {
-
-    private static final DateTimeFormatter BOUNDARY_TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
 
     private final ZoneId businessZone;
     private final SchedulingProperties schedulingProperties;
@@ -197,22 +193,11 @@ public class ReportingPeriodCalculator {
             if (frequency.name().equals(schedule.getFrequency())
                     && schedule.getReportTypes() != null
                     && schedule.getReportTypes().contains(reportType)) {
-                return parseBoundaries(schedule.getBoundaries());
+                return BoundaryTimes.parse(schedule.getBoundaries());
             }
         }
         throw new IllegalStateException("No configured commander.scheduling schedule for reportType=" + reportType
                 + ", frequency=" + frequency);
-    }
-
-    private static List<LocalTime> parseBoundaries(String boundaries) {
-        if (boundaries == null || boundaries.isBlank()) {
-            return List.of();
-        }
-        return Arrays.stream(boundaries.split(","))
-                .map(String::trim)
-                .filter(value -> !value.isEmpty())
-                .map(value -> LocalTime.parse(value, BOUNDARY_TIME_FORMAT))
-                .toList();
     }
 
     private ZonedDateTime[] resolveWindowTimeBounds(

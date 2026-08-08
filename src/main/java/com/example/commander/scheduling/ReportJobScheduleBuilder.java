@@ -2,11 +2,10 @@ package com.example.commander.scheduling;
 
 import com.example.commander.config.SchedulingProperties;
 import com.example.commander.domain.message.ReportType;
+import com.example.commander.domain.report.BoundaryTimes;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 import org.quartz.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,8 +49,6 @@ public final class ReportJobScheduleBuilder {
 
     /** Job data key for window sequence number (0-based). */
     public static final String KEY_WINDOW_SEQUENCE = "windowSequence";
-
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
 
     private ReportJobScheduleBuilder() {}
 
@@ -122,7 +119,7 @@ public final class ReportJobScheduleBuilder {
 
     private static List<Trigger> buildWindowTriggers(
             JobDetail jobDetail, String identity, SchedulingProperties.Schedule schedule, String timezone) {
-        List<LocalTime> boundaries = parseBoundaries(schedule.getBoundaries());
+        List<LocalTime> boundaries = BoundaryTimes.parse(schedule.getBoundaries());
         List<Trigger> triggers = new ArrayList<>(boundaries.size());
 
         for (int sequence = 0; sequence < boundaries.size(); sequence++) {
@@ -145,23 +142,6 @@ public final class ReportJobScheduleBuilder {
         }
 
         return triggers;
-    }
-
-    /**
-     * Parses a comma-separated list of HH:mm boundary times.
-     *
-     * @param boundaries comma-separated time strings (e.g., "09:00,13:00,17:00")
-     * @return list of parsed LocalTime objects, or empty list if input is null/blank
-     */
-    static List<LocalTime> parseBoundaries(String boundaries) {
-        if (boundaries == null || boundaries.isBlank()) {
-            return Collections.emptyList();
-        }
-        return Arrays.stream(boundaries.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .map(s -> LocalTime.parse(s, TIME_FORMATTER))
-                .collect(Collectors.toList());
     }
 
     private static String buildJobName(ReportType reportType, String frequency) {

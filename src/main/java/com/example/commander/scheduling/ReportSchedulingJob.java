@@ -2,6 +2,7 @@ package com.example.commander.scheduling;
 
 import com.example.commander.adapter.batch.trigger.ReportPipelineTrigger;
 import com.example.commander.domain.message.ReportType;
+import com.example.commander.domain.report.BoundaryTimes;
 import com.example.commander.domain.report.ReportFrequency;
 import java.time.Duration;
 import java.time.Instant;
@@ -104,8 +105,7 @@ public class ReportSchedulingJob implements Job {
         Integer windowSequence = sequenceStr != null ? Integer.valueOf(sequenceStr) : null;
 
         String boundariesCsv = jobData.getString(KEY_BOUNDARIES);
-        List<LocalTime> boundaries =
-                boundariesCsv != null ? ReportJobScheduleBuilder.parseBoundaries(boundariesCsv) : null;
+        List<LocalTime> boundaries = boundariesCsv != null ? BoundaryTimes.parse(boundariesCsv) : null;
 
         try {
             JobExecution jobExecution =

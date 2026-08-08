@@ -13,8 +13,9 @@ import org.springframework.stereotype.Repository;
  * <p>Queries by {@code EngagementId} alone, not the schema's indexed {@code (EngagementBank,
  * EngagementId)} pair — the calling integration (PHT) supplies only a single engagement
  * identifier with no separate bank code. Neither of {@code CAMT.Agreement}'s indexes
- * guarantees uniqueness on {@code EngagementId} alone; {@link #singleRow} throws if this
- * assumption turns out to be wrong for real data, rather than silently picking one row.
+ * guarantees uniqueness on {@code EngagementId} alone; {@link JdbcRepositorySupport#singleRow}
+ * throws if this assumption turns out to be wrong for real data, rather than silently picking
+ * one row.
  */
 @Repository
 public class AgreementScopeRepositoryImpl implements AgreementScopeRepository {
@@ -40,26 +41,9 @@ public class AgreementScopeRepositoryImpl implements AgreementScopeRepository {
                 (rs, rowNum) -> rs.getLong("MessageRecipientId"),
                 reportType.name(),
                 engagementId);
-        return singleRow(rows);
-    }
-
-    /**
-     * Returns a single row from a list, or empty if the list is empty.
-     *
-     * @param rows the result list
-     * @param <T> the row type
-     * @return the single row if present, or empty
-     * @throws IllegalStateException if more than one row is found
-     */
-    private static <T> Optional<T> singleRow(List<T> rows) {
-        if (rows.isEmpty()) {
-            return Optional.empty();
-        }
-        if (rows.size() > 1) {
-            throw new IllegalStateException("Expected at most one row but found " + rows.size()
-                    + " — EngagementId is not guaranteed unique alone; an EngagementBank filter"
-                    + " may be needed for this data");
-        }
-        return Optional.of(rows.get(0));
+        return JdbcRepositorySupport.singleRow(
+                rows,
+                "EngagementId is not guaranteed unique alone; an EngagementBank filter may be needed for this"
+                        + " data");
     }
 }

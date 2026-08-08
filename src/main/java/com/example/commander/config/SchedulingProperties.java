@@ -1,12 +1,16 @@
 package com.example.commander.config;
 
 import com.example.commander.domain.message.ReportType;
+import com.example.commander.domain.report.BoundaryTimes;
+import jakarta.annotation.PostConstruct;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -58,6 +62,7 @@ public class SchedulingProperties {
      *
      * @throws IllegalStateException if any validation rule is violated
      */
+    @PostConstruct
     public void validate() {
         Set<String> seenPairs = new HashSet<>();
 
@@ -115,7 +120,7 @@ public class SchedulingProperties {
             return;
         }
 
-        List<LocalTime> times = parseBoundaries(schedule.getBoundaries());
+        List<LocalTime> times = BoundaryTimes.parse(schedule.getBoundaries());
         if (times.isEmpty()) {
             throw new IllegalStateException(
                     String.format("Schedule[%d] (frequency=%s) has empty boundaries", index, schedule.getFrequency()));
@@ -133,17 +138,6 @@ public class SchedulingProperties {
             throw new IllegalStateException(String.format(
                     "Schedule[%d] (frequency=%s) boundaries cannot include 00:00", index, schedule.getFrequency()));
         }
-    }
-
-    private List<LocalTime> parseBoundaries(String boundaries) {
-        if (boundaries == null || boundaries.isBlank()) {
-            return List.of();
-        }
-        return Arrays.stream(boundaries.split(","))
-                .map(String::trim)
-                .filter(s -> !s.isEmpty())
-                .map(s -> LocalTime.parse(s, DateTimeFormatter.ofPattern("HH:mm")))
-                .toList();
     }
 
     /**
@@ -180,7 +174,7 @@ public class SchedulingProperties {
          *
          * <p>Default: "MON-FRI". Applied as the day-of-week field in the assembled Quartz cron expression.
          */
-        private String daysOfWeek = "MON-FRI";
+        private String daysOfWeek = "MON-SUN";
 
         /** Report types that should run on this schedule. Must contain at least one entry. */
         @NotEmpty private List<ReportType> reportTypes = new ArrayList<>();

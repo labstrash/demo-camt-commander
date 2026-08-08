@@ -143,7 +143,7 @@ public class OnDemandReportService {
                 request.requestorName());
 
         ReportConfigTree tree =
-                reportConfigTreeRepository.assembleTrees(List.of(config)).get(0);
+                reportConfigTreeRepository.assembleTrees(List.of(config)).getFirst();
         List<ReportMessageEnvelope> messages = reportMessageAssembler.assemble(tree, context);
 
         String targetQueue = mqProperties.queueFor(config.reportType());

@@ -36,6 +36,9 @@ public class ReportConfigRepositoryImpl implements ReportConfigRepository {
             WHERE MessageRecipientId = ? AND ReportType = ? AND IsActive = 1
             """;
 
+    private static final String UNIQUE_CONSTRAINT_VIOLATION =
+            "this indicates a unique-constraint violation in the underlying data";
+
     private final JdbcTemplate jdbcTemplate;
 
     public ReportConfigRepositoryImpl(JdbcTemplate jdbcTemplate) {
@@ -46,13 +49,13 @@ public class ReportConfigRepositoryImpl implements ReportConfigRepository {
     public Optional<RecipientRow> findRecipientByTypeAndValue(String type, String value) {
         List<RecipientRow> rows =
                 jdbcTemplate.query(FIND_RECIPIENT_SQL, ConfigurationRowMappers.RECIPIENT, type, value);
-        return singleRow(rows);
+        return JdbcRepositorySupport.singleRow(rows, UNIQUE_CONSTRAINT_VIOLATION);
     }
 
     @Override
     public Optional<RecipientRow> findRecipientById(long id) {
         List<RecipientRow> rows = jdbcTemplate.query(FIND_RECIPIENT_BY_ID_SQL, ConfigurationRowMappers.RECIPIENT, id);
-        return singleRow(rows);
+        return JdbcRepositorySupport.singleRow(rows, UNIQUE_CONSTRAINT_VIOLATION);
     }
 
     @Override
@@ -65,25 +68,6 @@ public class ReportConfigRepositoryImpl implements ReportConfigRepository {
                 ConfigurationRowMappers.REPORT_CONFIG,
                 messageRecipientId,
                 reportType.name());
-        return singleRow(rows);
-    }
-
-    /**
-     * Returns a single row from a list, or empty if the list is empty.
-     *
-     * @param rows the result list
-     * @param <T> the row type
-     * @return the single row if present, or empty
-     * @throws IllegalStateException if more than one row is found
-     */
-    private static <T> Optional<T> singleRow(List<T> rows) {
-        if (rows.isEmpty()) {
-            return Optional.empty();
-        }
-        if (rows.size() > 1) {
-            throw new IllegalStateException("Expected at most one row but found " + rows.size()
-                    + " — this indicates a unique-constraint violation in the underlying data");
-        }
-        return Optional.of(rows.get(0));
+        return JdbcRepositorySupport.singleRow(rows, UNIQUE_CONSTRAINT_VIOLATION);
     }
 }

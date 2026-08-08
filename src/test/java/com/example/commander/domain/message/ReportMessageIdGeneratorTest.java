@@ -14,7 +14,7 @@ class ReportMessageIdGeneratorTest {
     void generatesAnIdStartingWithTheDefaultPrefixAndReportTypeDerivedSegment() {
         String messageId = generator.generateMessageId(12345678, ReportType.CAMT054C);
 
-        // "CAMT054C" -> substring from index 5 -> "54C"
+        // ReportType.CAMT054C.code() -> "54C"
         assertThat(messageId).startsWith("FIKASE54C").contains("12345678");
     }
 
