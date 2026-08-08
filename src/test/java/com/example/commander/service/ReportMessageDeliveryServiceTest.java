@@ -82,7 +82,7 @@ class ReportMessageDeliveryServiceTest {
         assertThat(status).isEqualTo(ReportCommandAuditStatus.FAILED);
         verify(deadLetterRepository)
                 .insert(eq(new DeadLetterMessage(
-                        item.payload().messageId(),
+                        item.payload().id(),
                         item.configId(),
                         item.scopeId(),
                         ReportType.CAMT054C,

@@ -7,7 +7,7 @@ import java.time.Instant;
  * Flat projection of a {@code CAMT.DeadLetterMessage} row.
  *
  * @param id surrogate primary key
- * @param messageId the message's own identifier ({@code OutboundReportMessage.messageId()})
+ * @param messageId the message's own identifier ({@code ReportMessage.id()})
  * @param reportConfigId surrogate ID of the originating {@code ReportConfig} row
  * @param agreementScopeId the single originating scope ID for unbundled messages, or
  *     {@code null} for bundled/config-only messages, which have no single scope
@@ -45,7 +45,7 @@ public record DeadLetterMessage(
      * lastError}, {@code createdAt}, and {@code updatedAt} take their insert-time defaults
      * ({@code 0}/{@code null}), and {@code status} starts {@code PENDING_RETRY}.
      *
-     * @param messageId the message's own identifier ({@code OutboundReportMessage.messageId()})
+     * @param messageId the message's own identifier ({@code ReportMessage.id()})
      * @param reportConfigId surrogate ID of the originating {@code ReportConfig} row
      * @param agreementScopeId the single originating scope ID, or {@code null} for
      *     bundled/config-only messages

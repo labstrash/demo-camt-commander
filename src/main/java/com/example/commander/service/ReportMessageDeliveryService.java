@@ -101,7 +101,7 @@ public class ReportMessageDeliveryService {
             // thread once Phase 4 lands).
             log.error(
                     "Failed to serialize messageId={} correlationId={} — recording as FAILED, no dead-letter row",
-                    payload.messageId(),
+                    payload.id(),
                     payload.correlationId(),
                     ex);
             insertAudit(auditEntry(
@@ -125,7 +125,7 @@ public class ReportMessageDeliveryService {
         insertAudit(auditEntry(item, ReportCommandAuditStatus.SENT, outcome.jmsMessageId(), null, 0, deliveryContext));
         log.info(
                 "Delivered messageId={} correlationId={} to queue={} (jmsMessageId={})",
-                payload.messageId(),
+                payload.id(),
                 payload.correlationId(),
                 targetQueue,
                 outcome.jmsMessageId());
@@ -135,12 +135,12 @@ public class ReportMessageDeliveryService {
     private void deadLetter(ReportMessageEnvelope item, String json, SendOutcome outcome, String targetQueue) {
         log.warn(
                 "Dead-lettering messageId={} (outcome={}) for queue={}",
-                item.payload().messageId(),
+                item.payload().id(),
                 outcome.type(),
                 targetQueue,
                 outcome.cause());
         deadLetterRepository.insert(new DeadLetterMessage(
-                item.payload().messageId(),
+                item.payload().id(),
                 item.configId(),
                 item.scopeId(),
                 item.payload().type(),
@@ -166,7 +166,7 @@ public class ReportMessageDeliveryService {
             DeliveryContext deliveryContext) {
         ReportMessage payload = item.payload();
         return ReportCommandAuditEntry.builder()
-                .messageId(payload.messageId())
+                .messageId(payload.id())
                 .correlationId(payload.correlationId())
                 .reportConfigId(item.configId())
                 .configId(String.valueOf(payload.reportId()))

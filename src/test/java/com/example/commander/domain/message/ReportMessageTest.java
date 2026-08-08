@@ -117,11 +117,11 @@ class ReportMessageTest {
     }
 
     @Test
-    void rejectsNullMessageId() {
+    void rejectsNullId() {
         assertThatThrownBy(() -> canonical(
                         ReportType.CAMT054C, "1.0", START, END, TriggerType.SCHEDULED, RECIPIENT, "corr-id", null))
                 .isInstanceOf(NullPointerException.class)
-                .hasMessageContaining("messageId");
+                .hasMessageContaining("id cannot be null");
     }
 
     @Test
@@ -240,7 +240,7 @@ class ReportMessageTest {
             TriggerType triggerType,
             Recipient recipient,
             String correlationId,
-            String messageId) {
+            String id) {
         return new ReportMessage(
                 1,
                 type,
@@ -256,7 +256,7 @@ class ReportMessageTest {
                 List.of(),
                 null,
                 correlationId,
-                messageId);
+                id);
     }
 
     private static ReportMessage.Builder validBuilder() {
@@ -275,6 +275,6 @@ class ReportMessageTest {
                 .paymentTypeGroups(List.of())
                 .requestorName("alice")
                 .correlationId("corr-id")
-                .messageId("msg-id");
+                .id("msg-id");
     }
 }

@@ -153,7 +153,7 @@ class OnDemandReportServiceTest {
         assertThat(result.status()).isEqualTo(ReportCommandAuditStatus.SENT);
         assertThat(result.messages()).hasSize(1);
         assertThat(result.messages().get(0).messageId())
-                .isEqualTo(envelope.payload().messageId());
+                .isEqualTo(envelope.payload().id());
         verify(auditRepository, never()).insert(any());
     }
 

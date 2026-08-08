@@ -160,7 +160,7 @@ public class DeadLetterRecoveryJob implements Job {
             String mqMessageId,
             String errorMessage) {
         return ReportCommandAuditEntry.builder()
-                .messageId(payload.messageId())
+                .messageId(payload.id())
                 .correlationId(payload.correlationId())
                 .reportConfigId(row.reportConfigId())
                 .configId(String.valueOf(payload.reportId()))

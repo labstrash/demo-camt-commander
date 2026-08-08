@@ -37,8 +37,8 @@ class RecipientResolvingReportMessageProcessorTest {
                 .isEqualTo(new Recipient(999L, RecipientType.BIC, "SOMEBIC", "Some Recipient"));
         assertThat(result.configId()).isEqualTo(item.configId());
         assertThat(result.scopeId()).isEqualTo(item.scopeId());
-        // messageId is non-deterministic — must be threaded forward unchanged, never regenerated
-        assertThat(result.payload().messageId()).isEqualTo(item.payload().messageId());
+        // id is non-deterministic — must be threaded forward unchanged, never regenerated
+        assertThat(result.payload().id()).isEqualTo(item.payload().id());
         assertThat(result.payload().correlationId()).isEqualTo(item.payload().correlationId());
         assertThat(result.payload().reportId()).isEqualTo(item.payload().reportId());
         assertThat(result.payload().type()).isEqualTo(item.payload().type());

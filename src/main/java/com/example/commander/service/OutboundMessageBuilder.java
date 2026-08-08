@@ -74,7 +74,7 @@ public class OutboundMessageBuilder {
                 .paymentTypeGroups(paymentTypeGroups)
                 .requestorName(context.requestorName())
                 .correlationId(correlationId)
-                .messageId(messageId)
+                .id(messageId)
                 .build();
 
         // Build envelope

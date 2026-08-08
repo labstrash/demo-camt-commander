@@ -152,7 +152,7 @@ public class OnDemandReportService {
             log.debug("Report Message={}", message.payload());
             ReportCommandAuditStatus status = deliveryService.deliver(message, targetQueue, null, null, null);
             outcomes.add(new OnDemandMessageOutcome(
-                    message.payload().messageId(), message.payload().correlationId(), status));
+                    message.payload().id(), message.payload().correlationId(), status));
         }
 
         return new OnDemandReportResult(aggregateStatus(outcomes), null, outcomes);

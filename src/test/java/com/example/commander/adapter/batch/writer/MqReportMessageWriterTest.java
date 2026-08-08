@@ -74,7 +74,7 @@ class MqReportMessageWriterTest {
         return message("corr-id", "FIKASE054C123450Q9Z6XZHPAH5R0000");
     }
 
-    private static ReportMessageEnvelope message(String correlationId, String messageId) {
+    private static ReportMessageEnvelope message(String correlationId, String id) {
         ReportMessage payload = new ReportMessage(
                 12345678,
                 ReportType.CAMT054C,
@@ -90,7 +90,7 @@ class MqReportMessageWriterTest {
                 List.of(),
                 null,
                 correlationId,
-                messageId);
+                id);
         return new ReportMessageEnvelope(payload, 1L, null);
     }
 }

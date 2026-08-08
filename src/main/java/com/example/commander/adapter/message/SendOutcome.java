@@ -8,7 +8,7 @@ package com.example.commander.adapter.message;
  * @param jmsMessageId the MQ provider's own assigned message ID (from {@code
  *     Message.getJMSMessageID()} after a successful send), or {@code null} for any
  *     non-{@link Type#SUCCESS} outcome. Distinct from Commander's own generated
- *     {@code OutboundReportMessage.messageId()}.
+ *     {@code ReportMessage.id()}.
  */
 public record SendOutcome(Type type, Throwable cause, String jmsMessageId) {
 

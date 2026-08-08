@@ -174,7 +174,7 @@ public class SchedulingProperties {
          *
          * <p>Default: "MON-FRI". Applied as the day-of-week field in the assembled Quartz cron expression.
          */
-        private String daysOfWeek = "MON-SUN";
+        private String daysOfWeek = "MON-FRI";
 
         /** Report types that should run on this schedule. Must contain at least one entry. */
         @NotEmpty private List<ReportType> reportTypes = new ArrayList<>();

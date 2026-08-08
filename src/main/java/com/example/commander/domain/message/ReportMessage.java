@@ -34,7 +34,7 @@ public record ReportMessage(
         List<PaymentTypeAllocation> paymentTypes,
         String requestorName,
         String correlationId,
-        String messageId) {
+        String id) {
     public ReportMessage {
         validateReportId(reportId);
         Objects.requireNonNull(type, "type cannot be null");
@@ -45,7 +45,7 @@ public record ReportMessage(
         Objects.requireNonNull(triggerType, "triggerType cannot be null");
         Objects.requireNonNull(recipient, "recipient cannot be null");
         Objects.requireNonNull(correlationId, "correlationId cannot be null");
-        Objects.requireNonNull(messageId, "messageId cannot be null");
+        Objects.requireNonNull(id, "id cannot be null");
 
         paymentTypes = paymentTypes == null ? List.of() : List.copyOf(paymentTypes);
 
@@ -119,7 +119,7 @@ public record ReportMessage(
         private List<PaymentTypeAllocation> paymentTypeAllocations;
         private String requestorName;
         private String correlationId;
-        private String messageId;
+        private String id;
 
         private Builder() {}
 
@@ -193,8 +193,8 @@ public record ReportMessage(
             return this;
         }
 
-        public Builder messageId(String messageId) {
-            this.messageId = messageId;
+        public Builder id(String id) {
+            this.id = id;
             return this;
         }
 
@@ -235,8 +235,8 @@ public record ReportMessage(
             if (correlationId == null) {
                 throw new IllegalStateException("correlationId is required");
             }
-            if (messageId == null) {
-                throw new IllegalStateException("messageId is required");
+            if (id == null) {
+                throw new IllegalStateException("id is required");
             }
 
             return new ReportMessage(
@@ -254,7 +254,7 @@ public record ReportMessage(
                     paymentTypeAllocations,
                     requestorName,
                     correlationId,
-                    messageId);
+                    id);
         }
 
         public Builder from(ReportMessage existing) {
@@ -272,7 +272,7 @@ public record ReportMessage(
             this.paymentTypeAllocations = existing.paymentTypes();
             this.requestorName = existing.requestorName();
             this.correlationId = existing.correlationId();
-            this.messageId = existing.messageId();
+            this.id = existing.id();
             return this;
         }
     }

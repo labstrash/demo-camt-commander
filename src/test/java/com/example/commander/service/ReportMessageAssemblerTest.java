@@ -238,7 +238,7 @@ class ReportMessageAssemblerTest {
     void messageIdIsNonNullAndWithinLengthBudgetForAnOrdinaryReportType() {
         ReportConfigTree tree = new ReportConfigTree(config(true), List.of());
 
-        String messageId = service.assemble(tree, context()).get(0).payload().messageId();
+        String messageId = service.assemble(tree, context()).get(0).payload().id();
 
         assertThat(messageId).isNotBlank().hasSizeLessThan(35).startsWith("FIKASE");
     }
@@ -263,7 +263,7 @@ class ReportMessageAssemblerTest {
                 true);
         ReportConfigTree tree = new ReportConfigTree(longSuffixConfig, List.of());
 
-        String messageId = service.assemble(tree, context()).get(0).payload().messageId();
+        String messageId = service.assemble(tree, context()).get(0).payload().id();
 
         assertThat(messageId)
                 .hasSizeLessThanOrEqualTo(35)

@@ -18,9 +18,9 @@ import org.springframework.stereotype.Component;
  *
  * <p>The placeholder {@link Recipient} stashes {@code config.messageRecipientId()} in its
  * {@code id} field — this processor reads it back out, looks up the real recipient, and
- * rebuilds the message with every other field (including {@code correlationId}/{@code
- * messageId}, which must never be regenerated — see {@code FanOutAssemblyService}) copied
- * forward unchanged.
+ * rebuilds the message with every other field (including {@code correlationId}/{@code id},
+ * which must never be regenerated — see {@code FanOutAssemblyService}) copied forward
+ * unchanged.
  *
  * <p>An unresolvable recipient ID filters the message out of the chunk entirely (return
  * {@code null}), per {@code ItemProcessor}'s contract — the filter event is logged with

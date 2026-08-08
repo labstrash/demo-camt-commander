@@ -73,7 +73,7 @@ class ReportMessageEnvelopeTest {
                 .recipient(new Recipient(999L, RecipientType.BIC, "SOMEBIC", "Some Recipient"))
                 .paymentTypeGroups(List.of())
                 .correlationId("corr-id")
-                .messageId("FIKASE054C123450Q9Z6XZHPAH5R0000")
+                .id("FIKASE054C123450Q9Z6XZHPAH5R0000")
                 .build();
     }
 }
