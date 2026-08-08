@@ -8,11 +8,11 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.example.commander.application.OnDemandReportService;
 import com.example.commander.domain.audit.ReportCommandAuditStatus;
 import com.example.commander.domain.message.ReportType;
 import com.example.commander.domain.ondemand.OnDemandReportRequest;
 import com.example.commander.domain.ondemand.OnDemandReportResult;
-import com.example.commander.service.OnDemandReportService;
 import jakarta.jms.BytesMessage;
 import jakarta.jms.JMSException;
 import jakarta.jms.ObjectMessage;

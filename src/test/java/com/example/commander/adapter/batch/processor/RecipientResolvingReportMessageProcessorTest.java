@@ -5,7 +5,7 @@ import static org.mockito.Mockito.when;
 
 import com.example.commander.domain.config.RecipientRow;
 import com.example.commander.domain.message.*;
-import com.example.commander.repository.ReportConfigRepository;
+import com.example.commander.port.ReportConfigRepository;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;

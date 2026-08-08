@@ -22,7 +22,7 @@ import java.util.Objects;
  * @param recipient the message recipient
  * @param requestorName who initiated the request (null for scheduled, auditable value for on-demand)
  * @param accountBalances externally supplied balances, keyed by account — empty for every path
- *     except the PHT balance use case. {@link com.example.commander.service.AllocationMapper}
+ *     except the PHT balance use case. {@link com.example.commander.domain.assembly.AllocationMapper}
  *     populates {@link AccountAllocation#balance()}/{@link AccountAllocation#settlementAmount()}
  *     from this map when non-empty, and — for that same case — omits any account this map has
  *     no entry for, since a PHT push only ever covers the accounts it actually carries data for.

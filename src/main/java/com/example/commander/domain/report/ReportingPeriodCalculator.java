@@ -1,6 +1,6 @@
 package com.example.commander.domain.report;
 
-import com.example.commander.config.SchedulingProperties;
+import com.example.commander.adapter.scheduling.SchedulingProperties;
 import com.example.commander.domain.message.ReportType;
 import java.time.Duration;
 import java.time.Instant;

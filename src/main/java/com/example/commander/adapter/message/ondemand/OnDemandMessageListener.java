@@ -1,9 +1,9 @@
 package com.example.commander.adapter.message.ondemand;
 
 import com.example.commander.adapter.message.JmsMessageBodyReader;
+import com.example.commander.application.OnDemandReportService;
 import com.example.commander.domain.ondemand.OnDemandReportRequest;
 import com.example.commander.domain.ondemand.OnDemandReportResult;
-import com.example.commander.service.OnDemandReportService;
 import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 import java.io.UnsupportedEncodingException;

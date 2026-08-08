@@ -1,6 +1,7 @@
 package com.example.commander.adapter.batch.reader;
 
-import com.example.commander.config.ReportConfigReadProperties;
+import com.example.commander.adapter.persistence.ReportConfigReadProperties;
+import com.example.commander.domain.assembly.ReportMessageAssembler;
 import com.example.commander.domain.config.ReportConfigRow;
 import com.example.commander.domain.config.ReportConfigTree;
 import com.example.commander.domain.message.AssemblyContext;
@@ -11,8 +12,7 @@ import com.example.commander.domain.message.ReportMessageEnvelope;
 import com.example.commander.domain.message.ReportType;
 import com.example.commander.domain.message.TriggerType;
 import com.example.commander.domain.report.ReportWindow;
-import com.example.commander.repository.ReportConfigTreeRepository;
-import com.example.commander.service.ReportMessageAssembler;
+import com.example.commander.port.ReportConfigTreeRepository;
 import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.Deque;

@@ -8,9 +8,9 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.example.commander.application.PhtReportOrchestrationService;
 import com.example.commander.domain.pht.PhtBalanceMessage;
-import com.example.commander.service.PhtMessageParser;
-import com.example.commander.service.PhtReportOrchestrationService;
+import com.example.commander.domain.pht.PhtMessageParser;
 import jakarta.jms.BytesMessage;
 import jakarta.jms.JMSException;
 import jakarta.jms.TextMessage;

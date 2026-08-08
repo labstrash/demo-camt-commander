@@ -5,6 +5,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.example.commander.adapter.message.MqProperties;
+import com.example.commander.application.ReportMessageDeliveryService;
 import com.example.commander.domain.audit.ReportCommandAuditStatus;
 import com.example.commander.domain.message.Recipient;
 import com.example.commander.domain.message.RecipientType;
@@ -12,7 +13,6 @@ import com.example.commander.domain.message.ReportMessage;
 import com.example.commander.domain.message.ReportMessageEnvelope;
 import com.example.commander.domain.message.ReportType;
 import com.example.commander.domain.message.TriggerType;
-import com.example.commander.service.ReportMessageDeliveryService;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
