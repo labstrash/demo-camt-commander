@@ -5,9 +5,8 @@ import com.example.commander.domain.report.BoundaryTimes;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.*;
+import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Builds Quartz jobs and triggers from {@link SchedulingProperties}.
@@ -28,9 +27,8 @@ import org.slf4j.LoggerFactory;
  * value, so {@link SchedulingProperties.Schedule#getWindowMinutes()} (validated at load time)
  * has nothing to feed at job-execution time.
  */
+@Slf4j
 public final class ReportJobScheduleBuilder {
-
-    private static final Logger log = LoggerFactory.getLogger(ReportJobScheduleBuilder.class);
 
     private static final String JOB_GROUP = "camt-scheduling";
     static final String TRIGGER_GROUP = "camt-scheduling";

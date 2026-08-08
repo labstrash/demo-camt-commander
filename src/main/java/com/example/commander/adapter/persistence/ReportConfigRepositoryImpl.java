@@ -6,6 +6,7 @@ import com.example.commander.domain.message.ReportType;
 import com.example.commander.port.ReportConfigRepository;
 import java.util.List;
 import java.util.Optional;
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Repository;
  * {@code findRecipientById} is called from the scheduled path's recipient-resolution
  * processor.
  */
+@RequiredArgsConstructor
 @Repository
 public class ReportConfigRepositoryImpl implements ReportConfigRepository {
 
@@ -37,10 +39,6 @@ public class ReportConfigRepositoryImpl implements ReportConfigRepository {
             """;
 
     private final JdbcTemplate jdbcTemplate;
-
-    public ReportConfigRepositoryImpl(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     public Optional<RecipientRow> findRecipientByTypeAndValue(String type, String value) {

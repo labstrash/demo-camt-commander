@@ -1,6 +1,8 @@
 package com.example.commander.adapter.batch.config;
 
 import jakarta.validation.constraints.Positive;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -9,6 +11,8 @@ import org.springframework.validation.annotation.Validated;
  *
  * <p>Configured via {@code commander.batch} prefix in application properties.
  */
+@Getter
+@Setter
 @Validated
 @ConfigurationProperties(prefix = "commander.batch")
 public class BatchPipelineProperties {
@@ -19,12 +23,4 @@ public class BatchPipelineProperties {
      * round-trips, this bounds write-side transaction blast radius.
      */
     @Positive private int commitInterval = 200;
-
-    public int getCommitInterval() {
-        return commitInterval;
-    }
-
-    public void setCommitInterval(int commitInterval) {
-        this.commitInterval = commitInterval;
-    }
 }

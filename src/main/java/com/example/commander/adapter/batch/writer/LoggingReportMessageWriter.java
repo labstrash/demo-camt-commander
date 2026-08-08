@@ -2,8 +2,7 @@ package com.example.commander.adapter.batch.writer;
 
 import com.example.commander.domain.message.ReportMessage;
 import com.example.commander.domain.message.ReportMessageEnvelope;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.infrastructure.item.Chunk;
 import org.springframework.batch.infrastructure.item.ItemWriter;
 import org.springframework.stereotype.Component;
@@ -15,10 +14,9 @@ import org.springframework.stereotype.Component;
  * the log output; the envelope's internal {@code configId}/{@code scopeId} bookkeeping is not
  * needed here.
  */
+@Slf4j
 @Component
 public class LoggingReportMessageWriter implements ItemWriter<ReportMessageEnvelope> {
-
-    private static final Logger log = LoggerFactory.getLogger(LoggingReportMessageWriter.class);
 
     @Override
     public void write(Chunk<? extends ReportMessageEnvelope> chunk) {

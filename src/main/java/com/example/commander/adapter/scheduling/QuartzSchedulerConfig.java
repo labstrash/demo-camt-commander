@@ -5,9 +5,8 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TimeZone;
+import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.quartz.autoconfigure.SchedulerFactoryBeanCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -36,10 +35,9 @@ import org.springframework.context.annotation.Configuration;
  * group — {@code OrphanedTriggerCleanupRunner} only reconciles the report-scheduling group, so
  * keeping these out of it means that cleanup logic never has to know they exist.
  */
+@Slf4j
 @Configuration
 public class QuartzSchedulerConfig {
-
-    private static final Logger log = LoggerFactory.getLogger(QuartzSchedulerConfig.class);
 
     private static final String RECOVERY_GROUP = "camt-mq-recovery";
     private static final String RECOVERY_JOB_NAME = "deadLetterRecoveryJob";

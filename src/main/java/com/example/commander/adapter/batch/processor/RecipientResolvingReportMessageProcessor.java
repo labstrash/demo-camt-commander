@@ -7,8 +7,8 @@ import com.example.commander.domain.message.ReportMessage;
 import com.example.commander.domain.message.ReportMessageEnvelope;
 import com.example.commander.port.ReportConfigRepository;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.infrastructure.item.ItemProcessor;
 import org.springframework.stereotype.Component;
 
@@ -26,17 +26,13 @@ import org.springframework.stereotype.Component;
  * {@code null}), per {@code ItemProcessor}'s contract — the filter event is logged with
  * enough detail (config ID, recipient ID) to investigate.
  */
+@Slf4j
+@RequiredArgsConstructor
 @Component
 public class RecipientResolvingReportMessageProcessor
         implements ItemProcessor<ReportMessageEnvelope, ReportMessageEnvelope> {
 
-    private static final Logger log = LoggerFactory.getLogger(RecipientResolvingReportMessageProcessor.class);
-
     private final ReportConfigRepository repository;
-
-    public RecipientResolvingReportMessageProcessor(ReportConfigRepository repository) {
-        this.repository = repository;
-    }
 
     @Override
     public ReportMessageEnvelope process(ReportMessageEnvelope item) {

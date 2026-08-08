@@ -29,8 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
@@ -47,10 +47,10 @@ import org.springframework.stereotype.Service;
  * <p>Called from {@code OnDemandMessageListener} — fire-and-forget, no reply-to. The result is
  * logged by the caller; the audit row is the durable record.
  */
+@Slf4j
+@RequiredArgsConstructor
 @Service
 public class OnDemandReportService {
-
-    private static final Logger log = LoggerFactory.getLogger(OnDemandReportService.class);
 
     private static final String REJECTION_LOG_MESSAGE = "On-demand request rejected: {}";
 
@@ -70,27 +70,6 @@ public class OnDemandReportService {
     private final CorrelationIdGenerator correlationIdGenerator;
     private final ReportMessageIdGenerator messageIdGenerator;
     private final Clock clock;
-
-    public OnDemandReportService(
-            ReportConfigRepository reportConfigRepository,
-            ReportConfigTreeRepository reportConfigTreeRepository,
-            ReportMessageAssembler reportMessageAssembler,
-            ReportMessageDeliveryService deliveryService,
-            ReportCommandAuditRepository auditRepository,
-            MqProperties mqProperties,
-            CorrelationIdGenerator correlationIdGenerator,
-            ReportMessageIdGenerator messageIdGenerator,
-            Clock clock) {
-        this.reportConfigRepository = reportConfigRepository;
-        this.reportConfigTreeRepository = reportConfigTreeRepository;
-        this.reportMessageAssembler = reportMessageAssembler;
-        this.deliveryService = deliveryService;
-        this.auditRepository = auditRepository;
-        this.mqProperties = mqProperties;
-        this.correlationIdGenerator = correlationIdGenerator;
-        this.messageIdGenerator = messageIdGenerator;
-        this.clock = clock;
-    }
 
     /**
      * Triggers an on-demand report for {@code request}.

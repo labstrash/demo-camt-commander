@@ -32,8 +32,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
@@ -51,10 +50,9 @@ import org.springframework.stereotype.Service;
  * config's tree was covered by this push) is dropped rather than delivered — an empty balance
  * report has nothing to tell the recipient.
  */
+@Slf4j
 @Service
 public class ExtReportOrchestrationService {
-
-    private static final Logger log = LoggerFactory.getLogger(ExtReportOrchestrationService.class);
 
     private static final DateTimeFormatter MESSAGE_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
     private static final DateTimeFormatter MESSAGE_TIME_FORMAT = DateTimeFormatter.ofPattern("HHmmss");

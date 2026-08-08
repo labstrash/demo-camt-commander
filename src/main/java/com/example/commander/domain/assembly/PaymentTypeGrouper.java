@@ -14,18 +14,16 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
  * Groups assignments by payment type for message assembly.
  */
+@RequiredArgsConstructor
 @Component
 public class PaymentTypeGrouper {
     private final AllocationMapper allocationMapper;
-
-    public PaymentTypeGrouper(AllocationMapper allocationMapper) {
-        this.allocationMapper = allocationMapper;
-    }
 
     /**
      * Merges all assignments across scopes into one allocation per distinct payment type,

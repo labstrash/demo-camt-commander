@@ -17,8 +17,7 @@ import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.infrastructure.item.ExecutionContext;
 import org.springframework.batch.infrastructure.item.ItemStreamException;
@@ -58,11 +57,10 @@ import org.springframework.stereotype.Component;
  * interrupted mid-drain may have some of its messages re-emitted after restart, bounded by
  * at most one tree's worth.
  */
+@Slf4j
 @Component
 @StepScope
 public class ReportPipelineItemReader extends AbstractItemStreamItemReader<ReportMessageEnvelope> {
-
-    private static final Logger log = LoggerFactory.getLogger(ReportPipelineItemReader.class);
 
     private static final String LAST_SEEN_ID_KEY = "reportPipeline.lastSeenId";
 

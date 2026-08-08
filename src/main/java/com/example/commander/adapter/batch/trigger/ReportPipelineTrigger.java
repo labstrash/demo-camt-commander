@@ -8,6 +8,7 @@ import com.example.commander.domain.report.ReportingPeriodCalculator;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.job.Job;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.job.parameters.InvalidJobParametersException;
@@ -38,19 +39,13 @@ import org.springframework.stereotype.Component;
  * behavior {@code ReportSchedulingJob}'s own {@code JobInstanceAlreadyCompleteException}
  * handling exists to catch.
  */
+@RequiredArgsConstructor
 @Component
 public class ReportPipelineTrigger {
 
     private final JobOperator jobOperator;
     private final Job reportPipelineJob;
     private final ReportingPeriodCalculator periodCalculator;
-
-    public ReportPipelineTrigger(
-            JobOperator jobOperator, Job reportPipelineJob, ReportingPeriodCalculator periodCalculator) {
-        this.jobOperator = jobOperator;
-        this.reportPipelineJob = reportPipelineJob;
-        this.periodCalculator = periodCalculator;
-    }
 
     /**
      * Triggers a run for {@code reportType} at {@code frequency}, deriving the window as of

@@ -7,8 +7,8 @@ import com.example.commander.domain.message.ReportMessageEnvelope;
 import com.example.commander.domain.message.ScopedAllocation;
 import java.util.List;
 import java.util.Objects;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
@@ -28,18 +28,12 @@ import org.springframework.stereotype.Service;
  * <p>This service is pure Java with no database dependencies, making it easily testable
  * without a database or Spring context.
  */
+@Slf4j
+@RequiredArgsConstructor
 @Service
 public class ReportMessageAssembler {
-    private static final Logger log = LoggerFactory.getLogger(ReportMessageAssembler.class);
-
     private final OutboundMessageBuilder messageBuilder;
     private final MessageGroupingStrategyFactory strategyFactory;
-
-    public ReportMessageAssembler(
-            OutboundMessageBuilder messageBuilder, MessageGroupingStrategyFactory strategyFactory) {
-        this.messageBuilder = messageBuilder;
-        this.strategyFactory = strategyFactory;
-    }
 
     /**
      * Assembles a configuration tree into outbound messages.

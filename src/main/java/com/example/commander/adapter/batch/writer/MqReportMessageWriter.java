@@ -5,8 +5,7 @@ import com.example.commander.application.ReportMessageDeliveryService;
 import com.example.commander.domain.audit.ReportCommandAuditStatus;
 import com.example.commander.domain.message.ReportMessageEnvelope;
 import com.example.commander.domain.message.ReportType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.infrastructure.item.Chunk;
 import org.springframework.batch.infrastructure.item.ItemWriter;
@@ -25,11 +24,10 @@ import org.springframework.stereotype.Component;
  * JobParameters}, the target queue, and {@code StepExecution} once per job execution — a
  * firing only ever processes one report type, so there's nothing to re-resolve mid-step.
  */
+@Slf4j
 @Component
 @StepScope
 public class MqReportMessageWriter implements ItemWriter<ReportMessageEnvelope> {
-
-    private static final Logger log = LoggerFactory.getLogger(MqReportMessageWriter.class);
 
     private final ReportMessageDeliveryService deliveryService;
     private final String reportFrequency;

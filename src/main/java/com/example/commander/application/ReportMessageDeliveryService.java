@@ -11,8 +11,7 @@ import com.example.commander.domain.message.ReportMessageEnvelope;
 import com.example.commander.port.DeadLetterMessageRepository;
 import com.example.commander.port.ReportCommandAuditRepository;
 import java.time.Clock;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
@@ -40,10 +39,9 @@ import tools.jackson.databind.ObjectMapper;
  * ResilientMqSender}, which only ever handles an already-serialized string (the recovery job
  * resends a stored one, with nothing to serialize).
  */
+@Slf4j
 @Component
 public class ReportMessageDeliveryService {
-
-    private static final Logger log = LoggerFactory.getLogger(ReportMessageDeliveryService.class);
 
     private final ObjectMapper objectMapper;
     private final ResilientMqSender sender;

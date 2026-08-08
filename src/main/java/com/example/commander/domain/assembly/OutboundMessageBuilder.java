@@ -8,25 +8,18 @@ import com.example.commander.domain.message.ReportContext;
 import com.example.commander.domain.message.ReportMessage;
 import com.example.commander.domain.message.ReportMessageEnvelope;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
  * Builds outbound report messages from configuration trees and context.
  */
+@RequiredArgsConstructor
 @Component
 public class OutboundMessageBuilder {
     private final CorrelationIdGenerator correlationIdGenerator;
     private final ReportMessageIdGenerator messageIdGenerator;
     private final MessageIdValidator messageIdValidator;
-
-    public OutboundMessageBuilder(
-            CorrelationIdGenerator correlationIdGenerator,
-            ReportMessageIdGenerator messageIdGenerator,
-            MessageIdValidator messageIdValidator) {
-        this.correlationIdGenerator = correlationIdGenerator;
-        this.messageIdGenerator = messageIdGenerator;
-        this.messageIdValidator = messageIdValidator;
-    }
 
     /**
      * Builds a pipeline report message.
