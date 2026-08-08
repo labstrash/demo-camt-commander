@@ -1,9 +1,11 @@
 package com.example.commander.adapter.message;
 
 /**
- * Internal marker wrapping a send failure {@link MqFailureClassifier} classified transient —
- * exists solely to scope {@link ResilientMqSender}'s {@code RetryTemplate} to retrying only
- * this type, not every exception a send attempt could throw.
+ * Marks a send failure that may succeed if retried. Wraps exceptions classified as
+ * transient by {@link MqFailureClassifier} (e.g., network timeout, connection reset).
+ *
+ * <p>This is the only exception type retried by {@link ResilientMqSender}'s
+ * {@code RetryTemplate}.
  */
 public class TransientMqFailureException extends RuntimeException {
 

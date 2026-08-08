@@ -1,12 +1,9 @@
 package com.example.commander.adapter.message;
 
-import com.example.commander.adapter.message.ext.ExtMessageListener;
 import com.example.commander.adapter.message.ext.ExtProperties;
-import com.example.commander.adapter.message.ondemand.OnDemandMessageListener;
 import com.example.commander.adapter.message.ondemand.OnDemandProperties;
 import jakarta.jms.ConnectionFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.jms.autoconfigure.DefaultJmsListenerContainerFactoryConfigurer;
 import org.springframework.context.annotation.Bean;
@@ -14,26 +11,13 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.config.DefaultJmsListenerContainerFactory;
 
 /**
- * Wires the {@code @JmsListener} container factories for every inbound listener in this
- * application — {@link OnDemandMessageListener} and {@link ExtMessageListener} — from one
- * shared construction helper rather than duplicating it per listener.
- *
- * <p>Each factory bean is still independently {@code @ConditionalOnProperty}-gated (Spring
- * supports this at the {@code @Bean} method level) so the two queues stay independently
- * toggleable — {@code commander.ondemand.enabled}/{@code commander.ext.enabled} — and each
- * keeps its own concurrency setting.
- *
- * <p>Sessions are transacted: when a listener's processing throws, the session rolls back and
- * IBM MQ redelivers the message, incrementing its backout count. Each inbound queue's {@code
- * BOTHRESH}/{@code BOQNAME} (see {@code config.mqsc}) moves it to that queue's backout queue
- * once retries are exhausted — a poison message fails identically on every redelivery and
- * lands there quickly; a transient failure (e.g. a database blip) gets a real chance to
- * succeed on retry first.
+ * Configures {@code @JmsListener} container factories for inbound queues.
+ * Each factory is gated by its corresponding {@code enabled} property and uses the
+ * specified concurrency. Sessions are transacted, so exceptions cause redelivery.
  */
+@Slf4j
 @Configuration
 public class InboundMqListenerConfig {
-
-    private static final Logger log = LoggerFactory.getLogger(InboundMqListenerConfig.class);
 
     @Bean
     @ConditionalOnProperty(prefix = "commander.ondemand", name = "enabled", havingValue = "true")

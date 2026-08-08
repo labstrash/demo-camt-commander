@@ -1,9 +1,10 @@
 package com.example.commander.adapter.message;
 
 /**
- * Internal marker wrapping a send failure {@link MqFailureClassifier} classified permanent —
- * excluded from {@link ResilientMqSender}'s {@code RetryTemplate} retry scope, so a
- * permanent failure is sent once and routed straight to dead-letter.
+ * Marks a send failure that is not worth retrying. Wraps exceptions classified as
+ * permanent by {@link MqFailureClassifier} (e.g., invalid destination).
+ *
+ * <p>This exception is excluded from {@link ResilientMqSender}'s retry scope.
  */
 public class PermanentMqFailureException extends RuntimeException {
 

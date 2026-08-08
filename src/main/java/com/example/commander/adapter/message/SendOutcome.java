@@ -3,23 +3,23 @@ package com.example.commander.adapter.message;
 /**
  * Result of a {@link ResilientMqSender#send(String, String)} call.
  *
- * @param type which of the four outcomes this is
- * @param cause the failure's cause, or {@code null} on {@link Type#SUCCESS}
- * @param jmsMessageId the MQ provider's own assigned message ID (from {@code
- *     Message.getJMSMessageID()} after a successful send), or {@code null} for any
- *     non-{@link Type#SUCCESS} outcome. Distinct from Commander's own generated
- *     {@code ReportMessage.id()}.
+ * @param type         the outcome type (see {@link Type})
+ * @param cause        the failure cause, or {@code null} for {@link Type#SUCCESS}
+ * @param jmsMessageId the provider-assigned message ID, or {@code null} for non‑{@code SUCCESS}
  */
 public record SendOutcome(Type type, Throwable cause, String jmsMessageId) {
 
+    /**
+     * Outcome types for an MQ send attempt.
+     */
     public enum Type {
-        /** The message was sent successfully. */
+        /** Message was sent successfully. */
         SUCCESS,
-        /** The circuit breaker was open — no connection attempt was made at all. */
+        /** Circuit breaker was OPEN – no connection attempt was made. */
         BREAKER_OPEN,
-        /** Every retry attempt was used and the send still failed. */
+        /** All retry attempts were exhausted; the failure remains transient but unrecoverable. */
         TRANSIENT_EXHAUSTED,
-        /** The failure was classified permanent — sent once, not retried. */
+        /** Failure was classified permanent (e.g., invalid destination); not retried. */
         PERMANENT
     }
 
@@ -40,10 +40,7 @@ public record SendOutcome(Type type, Throwable cause, String jmsMessageId) {
     }
 
     /**
-     * Returns whether this outcome represents a failure to deliver — anything but
-     * {@link Type#SUCCESS}.
-     *
-     * @return {@code true} if the message was not delivered
+     * @return {@code true} if the message was not delivered (any type except {@code SUCCESS})
      */
     public boolean isFailure() {
         return type != Type.SUCCESS;

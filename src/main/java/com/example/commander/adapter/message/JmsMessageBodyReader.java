@@ -7,18 +7,13 @@ import jakarta.jms.TextMessage;
 import java.io.UnsupportedEncodingException;
 
 /**
- * Extracts the text body of an inbound JMS message, shared by every inbound listener in this
- * application ({@code OnDemandMessageListener}, {@code ExtMessageListener}).
- *
- * <p>Handles both {@link TextMessage} and {@link BytesMessage} — a bytes body is decoded using
- * the {@code JMS_IBM_CHARACTER_SET} message property (IBM MQ's own property name for the
- * sender's declared encoding), falling back to UTF-8 if the sender didn't set it. Any other
- * message type is unsupported and returns {@code null} — callers log this with their own
- * listener-specific context.
+ * Extracts the text body from a JMS message. Supports {@link TextMessage} and
+ * {@link BytesMessage}. Bytes messages are decoded using the {@code JMS_IBM_CHARACTER_SET}
+ * property if present, falling back to UTF-8. Unsupported types return {@code null}.
  */
 public final class JmsMessageBodyReader {
 
-    private static final String JMS_IBM_CHARACTER_SET = "JMS_IBM_CHARACTER_SET";
+    private static final String IBM_CHARSET_PROPERTY = "JMS_IBM_CHARACTER_SET";
     private static final String DEFAULT_ENCODING = "UTF-8";
 
     private JmsMessageBodyReader() {}
@@ -38,7 +33,7 @@ public final class JmsMessageBodyReader {
         int length = (int) message.getBodyLength();
         byte[] bytes = new byte[length];
         message.readBytes(bytes, length);
-        String encoding = message.getStringProperty(JMS_IBM_CHARACTER_SET);
+        String encoding = message.getStringProperty(IBM_CHARSET_PROPERTY);
         return new String(bytes, encoding != null ? encoding : DEFAULT_ENCODING).trim();
     }
 }

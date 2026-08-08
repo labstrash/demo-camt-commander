@@ -7,42 +7,30 @@ import com.example.commander.domain.ondemand.OnDemandReportResult;
 import jakarta.jms.JMSException;
 import jakarta.jms.Message;
 import java.io.UnsupportedEncodingException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 import tools.jackson.databind.ObjectMapper;
 
 /**
- * Consumes on-demand report requests from {@code CAMT.ONDEMAND.QUEUE} — a JSON body
- * deserializing directly to {@link OnDemandReportRequest}, dispatched to {@link
- * OnDemandReportService#trigger}.
+ * Consumes on‑demand report requests from {@code commander.ondemand.queue}. Extracts the JSON
+ * body via {@link JmsMessageBodyReader}, deserializes it to {@link OnDemandReportRequest}, and
+ * delegates to {@link OnDemandReportService#trigger(OnDemandReportRequest)}.
  *
- * <p>Fire-and-forget: no reply-to, no response of any kind back to the sender. The outcome is
- * logged here and durably recorded as a {@code CAMT.ReportCommandAudit} row by the service —
- * same posture as every other send path in this application.
- *
- * <p>An unsupported JMS message type or a blank body is dropped without dispatching — retrying
- * either can never succeed. Everything else (malformed JSON, an unexpected failure from {@link
- * OnDemandReportService#trigger}) is left to propagate: the container's transacted session (see
- * {@link com.example.commander.adapter.message.InboundMqListenerConfig}) rolls back and IBM MQ
- * redelivers, eventually backing the message out per {@code CAMT.ONDEMAND.QUEUE}'s {@code
- * BOTHRESH}/{@code BOQNAME}.
+ * <p>Unsupported message types or blank bodies are ignored. Any exception during processing
+ * rolls back the transaction, causing redelivery. The result is logged only; no response is
+ * sent back to the requester.
  */
+@Slf4j
+@RequiredArgsConstructor
 @Component
 @ConditionalOnProperty(prefix = "commander.ondemand", name = "enabled", havingValue = "true")
 public class OnDemandMessageListener {
 
-    private static final Logger log = LoggerFactory.getLogger(OnDemandMessageListener.class);
-
     private final ObjectMapper objectMapper;
     private final OnDemandReportService onDemandReportService;
-
-    public OnDemandMessageListener(ObjectMapper objectMapper, OnDemandReportService onDemandReportService) {
-        this.objectMapper = objectMapper;
-        this.onDemandReportService = onDemandReportService;
-    }
 
     @JmsListener(destination = "${commander.ondemand.queue}", containerFactory = "onDemandListenerContainerFactory")
     public void onMessage(Message message) throws JMSException, UnsupportedEncodingException {

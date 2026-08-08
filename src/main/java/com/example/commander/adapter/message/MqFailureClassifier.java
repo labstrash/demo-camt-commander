@@ -5,28 +5,34 @@ import org.springframework.jms.JmsException;
 import org.springframework.stereotype.Component;
 
 /**
- * Single policy deciding transient vs. permanent MQ send failures, shared by the primary
- * writer and the dead-letter recovery job so a failure is never classified differently
- * depending on which caller hit it.
+ * Classifies MQ send failures as <b>transient</b> or <b>permanent</b>.
  *
- * <p><b>Permanent</b> — retrying changes nothing: {@link InvalidDestinationException} (the
- * resolved queue name doesn't exist on the broker). Any other unrecognized exception
- * also defaults to permanent — an unknown failure mode shouldn't be blindly retried on
- * the assumption it's transient.
+ * <p><b>Transient</b> – a failure that may succeed if retried later. Examples:
+ * <ul>
+ *   <li>Network timeouts</li>
+ *   <li>Connection resets</li>
+ *   <li>Broker temporarily unavailable</li>
+ * </ul>
+ * These are typically {@link JmsException} subclasses that indicate a temporary
+ * communication or resource issue.
  *
- * <p><b>Transient</b> — worth retrying: any other {@link JmsException}, which is what
- * {@code JmsTemplate} translates a broker-unreachable/connection-reset/timeout {@code
- * jakarta.jms.JMSException} into.
+ * <p><b>Permanent</b> – a failure that will never succeed on retry because the
+ * message itself is invalid or the destination is misconfigured. Examples:
+ * <ul>
+ *   <li>{@link InvalidDestinationException} – the queue does not exist</li>
+ *   <li>Any non‑{@link JmsException} (unrecognized failure) – treated as permanent
+ *       as a safe default; retrying an unknown error is risky</li>
+ * </ul>
  */
 @Component
 public class MqFailureClassifier {
 
     /**
-     * Returns whether the given failure is worth retrying.
+     * Determines whether a send failure is transient (retriable) or permanent.
      *
      * @param ex the exception thrown by the send attempt
-     * @return {@code true} if transient (connection-level, worth retrying), {@code false} if
-     *     permanent (the message itself is the problem, or the failure mode is unrecognized)
+     * @return {@code true} if the failure is transient and worth retrying;
+     *         {@code false} if permanent
      */
     public boolean isTransient(Throwable ex) {
         if (ex instanceof InvalidDestinationException) {

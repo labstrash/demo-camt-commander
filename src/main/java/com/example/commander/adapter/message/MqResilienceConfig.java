@@ -8,11 +8,7 @@ import org.springframework.retry.backoff.FixedBackOffPolicy;
 import org.springframework.retry.policy.SimpleRetryPolicy;
 import org.springframework.retry.support.RetryTemplate;
 
-/**
- * Wires the framework pieces {@link ResilientMqSender} and {@link MqCircuitBreaker} build on.
- * Provides a {@link RetryTemplate} used programmatically (not {@code @Retryable}) and a
- * {@link Clock} bean for testability.
- */
+/** Provides {@link Clock} and {@link RetryTemplate} for MQ resilience. */
 @Configuration
 public class MqResilienceConfig {
 
