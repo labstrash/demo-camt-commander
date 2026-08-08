@@ -8,13 +8,13 @@ import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalTime;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.job.JobExecution;
 import org.springframework.batch.core.launch.JobInstanceAlreadyCompleteException;
@@ -40,11 +40,11 @@ import org.springframework.stereotype.Component;
  * <p>Uses {@code useProperties=true} in Quartz configuration, so all job data keys must be
  * strings.
  */
+@Slf4j
+@RequiredArgsConstructor
 @Component
 @DisallowConcurrentExecution
 public class ReportSchedulingJob implements Job {
-
-    private static final Logger log = LoggerFactory.getLogger(ReportSchedulingJob.class);
 
     /** Job data key for the report type to generate. */
     public static final String KEY_REPORT_TYPE = "reportType";
@@ -72,10 +72,6 @@ public class ReportSchedulingJob implements Job {
     private static final Duration LAUNCH_RETRY_BACKOFF = Duration.ofMillis(250);
 
     private final ReportPipelineTrigger reportPipelineTrigger;
-
-    public ReportSchedulingJob(ReportPipelineTrigger reportPipelineTrigger) {
-        this.reportPipelineTrigger = reportPipelineTrigger;
-    }
 
     /**
      * Executes the report scheduling job.

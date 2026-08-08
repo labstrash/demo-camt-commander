@@ -14,6 +14,7 @@ import com.example.commander.port.ReportCommandAuditRepository;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -52,6 +53,7 @@ import tools.jackson.databind.ObjectMapper;
  * shouldn't overlap with the next scheduled firing.
  */
 @Component
+@RequiredArgsConstructor
 @DisallowConcurrentExecution
 public class DeadLetterRecoveryJob implements Job {
 
@@ -63,21 +65,6 @@ public class DeadLetterRecoveryJob implements Job {
     private final ObjectMapper objectMapper;
     private final MqResilienceProperties properties;
     private final Clock clock;
-
-    public DeadLetterRecoveryJob(
-            DeadLetterMessageRepository repository,
-            ReportCommandAuditRepository auditRepository,
-            ResilientMqSender sender,
-            ObjectMapper objectMapper,
-            MqResilienceProperties properties,
-            Clock clock) {
-        this.repository = repository;
-        this.auditRepository = auditRepository;
-        this.sender = sender;
-        this.objectMapper = objectMapper;
-        this.properties = properties;
-        this.clock = clock;
-    }
 
     @Override
     public void execute(JobExecutionContext context) {

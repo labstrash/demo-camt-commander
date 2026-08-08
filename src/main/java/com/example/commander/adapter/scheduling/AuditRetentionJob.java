@@ -4,11 +4,11 @@ import com.example.commander.port.ReportCommandAuditRepository;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
@@ -22,22 +22,15 @@ import org.springframework.stereotype.Component;
  * new index is needed to drive the deletion query. Deletes every row past the retention window
  * regardless of {@code status} (SENT/FAILED) — retention is about age, not outcome.
  */
+@Slf4j
+@RequiredArgsConstructor
 @Component
 @DisallowConcurrentExecution
 public class AuditRetentionJob implements Job {
 
-    private static final Logger log = LoggerFactory.getLogger(AuditRetentionJob.class);
-
     private final ReportCommandAuditRepository repository;
     private final AuditRetentionProperties properties;
     private final Clock clock;
-
-    public AuditRetentionJob(
-            ReportCommandAuditRepository repository, AuditRetentionProperties properties, Clock clock) {
-        this.repository = repository;
-        this.properties = properties;
-        this.clock = clock;
-    }
 
     @Override
     public void execute(JobExecutionContext context) {

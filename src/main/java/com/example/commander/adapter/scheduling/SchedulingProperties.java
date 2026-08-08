@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -22,6 +24,8 @@ import org.springframework.validation.annotation.Validated;
  *
  * <p>Configured via {@code commander.scheduling} prefix in application properties.
  */
+@Setter
+@Getter
 @Validated
 @ConfigurationProperties(prefix = "commander.scheduling")
 public class SchedulingProperties {
@@ -31,22 +35,6 @@ public class SchedulingProperties {
 
     /** Schedule definitions. Each entry maps a frequency to its timing and report types. */
     @NotEmpty @Valid private List<Schedule> schedules = new ArrayList<>();
-
-    public String getTimezone() {
-        return timezone;
-    }
-
-    public void setTimezone(String timezone) {
-        this.timezone = timezone;
-    }
-
-    public List<Schedule> getSchedules() {
-        return schedules;
-    }
-
-    public void setSchedules(List<Schedule> schedules) {
-        this.schedules = schedules;
-    }
 
     /**
      * Validates all schedules after property binding.
@@ -149,6 +137,8 @@ public class SchedulingProperties {
      *   <li><b>Pattern B (boundaries):</b> Ordered time boundaries for daily window-based scheduling</li>
      * </ul>
      */
+    @Setter
+    @Getter
     public static class Schedule {
         /** Frequency label (e.g., DAILY, EVERY_30_MIN). Used in job naming and pattern detection. */
         @NotNull private String frequency;
@@ -178,54 +168,6 @@ public class SchedulingProperties {
 
         /** Report types that should run on this schedule. Must contain at least one entry. */
         @NotEmpty private List<ReportType> reportTypes = new ArrayList<>();
-
-        public String getFrequency() {
-            return frequency;
-        }
-
-        public void setFrequency(String frequency) {
-            this.frequency = frequency;
-        }
-
-        public String getCron() {
-            return cron;
-        }
-
-        public void setCron(String cron) {
-            this.cron = cron;
-        }
-
-        public String getBoundaries() {
-            return boundaries;
-        }
-
-        public void setBoundaries(String boundaries) {
-            this.boundaries = boundaries;
-        }
-
-        public Integer getWindowMinutes() {
-            return windowMinutes;
-        }
-
-        public void setWindowMinutes(Integer windowMinutes) {
-            this.windowMinutes = windowMinutes;
-        }
-
-        public String getDaysOfWeek() {
-            return daysOfWeek;
-        }
-
-        public void setDaysOfWeek(String daysOfWeek) {
-            this.daysOfWeek = daysOfWeek;
-        }
-
-        public List<ReportType> getReportTypes() {
-            return reportTypes;
-        }
-
-        public void setReportTypes(List<ReportType> reportTypes) {
-            this.reportTypes = reportTypes;
-        }
 
         /** Returns true if a cron expression is defined and non-blank. */
         public boolean hasCronSchedule() {

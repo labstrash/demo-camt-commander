@@ -3,13 +3,13 @@ package com.example.commander.adapter.scheduling;
 import com.example.commander.adapter.scheduling.ReportJobScheduleBuilder.ReportJobSchedule;
 import java.util.HashSet;
 import java.util.Set;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
 import org.quartz.Trigger;
 import org.quartz.TriggerKey;
 import org.quartz.impl.matchers.GroupMatcher;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
@@ -24,19 +24,25 @@ import org.springframework.stereotype.Component;
  *
  * <p>Safe for clustered environments: {@code unscheduleJob()} is idempotent, so concurrent
  * cleanup attempts from multiple nodes are harmless.
+ *
+ * <p><b>Blast radius is scoped by trigger group, not by class or package:</b> both {@code
+ * currentKeys} and {@code expectedKeys} are drawn only from {@link
+ * ReportJobScheduleBuilder#TRIGGER_GROUP} ({@code "camt-scheduling"}), so this runner can never
+ * see or remove a trigger registered under any other group — e.g. {@code
+ * DeadLetterRecoveryJob}/{@code AuditRetentionJob}'s triggers, which deliberately use a
+ * different group ({@code QuartzSchedulerConfig}'s {@code "camt-mq-recovery"}) for exactly this
+ * reason. Any future Quartz trigger — from any package — that reuses the {@code
+ * "camt-scheduling"} group name would be treated as orphaned and deleted here, since {@code
+ * expectedKeys} only ever reflects what {@link ReportJobScheduleBuilder} builds from {@code
+ * commander.scheduling} config.
  */
+@Slf4j
+@RequiredArgsConstructor
 @Component
 public class OrphanedTriggerCleanupRunner implements ApplicationRunner {
 
-    private static final Logger log = LoggerFactory.getLogger(OrphanedTriggerCleanupRunner.class);
-
     private final Scheduler scheduler;
     private final ReportJobSchedule expectedSchedule;
-
-    public OrphanedTriggerCleanupRunner(Scheduler scheduler, ReportJobSchedule expectedSchedule) {
-        this.scheduler = scheduler;
-        this.expectedSchedule = expectedSchedule;
-    }
 
     @Override
     public void run(ApplicationArguments args) throws SchedulerException {

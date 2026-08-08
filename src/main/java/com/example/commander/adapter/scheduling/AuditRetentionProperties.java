@@ -2,6 +2,8 @@ package com.example.commander.adapter.scheduling;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -15,9 +17,10 @@ import org.springframework.validation.annotation.Validated;
  * backoff defaults — sizing them against real row-volume data is future tuning, not a
  * design question this phase resolves.
  *
- * <p>Not yet consumed by anything: the retention job itself ({@code AuditRetentionJob}) is
- * deferred until Quartz exists (Phase 3 doc, Decision 6) — this shape is kept ready for it.
+ * <p>Consumed by {@link AuditRetentionJob}.
  */
+@Setter
+@Getter
 @Validated
 @ConfigurationProperties(prefix = "commander.audit.retention")
 public class AuditRetentionProperties {
@@ -30,28 +33,4 @@ public class AuditRetentionProperties {
 
     /** Cron expression for the retention job's polling cadence. */
     @NotBlank private String cron = "0 0 3 * * ?";
-
-    public int getRetentionDays() {
-        return retentionDays;
-    }
-
-    public void setRetentionDays(int retentionDays) {
-        this.retentionDays = retentionDays;
-    }
-
-    public int getBatchSize() {
-        return batchSize;
-    }
-
-    public void setBatchSize(int batchSize) {
-        this.batchSize = batchSize;
-    }
-
-    public String getCron() {
-        return cron;
-    }
-
-    public void setCron(String cron) {
-        this.cron = cron;
-    }
 }
