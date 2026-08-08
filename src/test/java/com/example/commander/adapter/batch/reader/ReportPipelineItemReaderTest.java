@@ -24,6 +24,7 @@ import com.example.commander.domain.config.ReportConfigTree;
 import com.example.commander.domain.message.ReportMessageEnvelope;
 import com.example.commander.domain.message.ReportType;
 import com.example.commander.port.ReportConfigTreeRepository;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -57,7 +58,10 @@ class ReportPipelineItemReaderTest {
     private final MessageGroupingStrategyFactory strategyFactory = new MessageGroupingStrategyFactory(
             new BundledGroupingStrategy(grouper), new UnbundledGroupingStrategy(grouper));
     private final OutboundMessageBuilder messageBuilder = new OutboundMessageBuilder(
-            new CorrelationIdGenerator(), new ReportMessageIdGenerator(), new MessageIdValidator());
+            new CorrelationIdGenerator(),
+            new ReportMessageIdGenerator(),
+            new MessageIdValidator(),
+            new SimpleMeterRegistry());
     private final ReportMessageAssembler fanOutAssemblyService =
             new ReportMessageAssembler(messageBuilder, strategyFactory);
 

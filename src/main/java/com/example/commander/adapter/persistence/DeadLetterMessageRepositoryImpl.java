@@ -71,6 +71,9 @@ public class DeadLetterMessageRepositoryImpl implements DeadLetterMessageReposit
             WHERE id = ?
             """;
 
+    // Covered by IX_DeadLetterMessage_StatusNextRetry (leading column status).
+    private static final String COUNT_BY_STATUS_SQL = "SELECT COUNT(*) FROM CAMT.DeadLetterMessage WHERE status = ?";
+
     private final JdbcTemplate jdbcTemplate;
 
     @Override
@@ -114,6 +117,12 @@ public class DeadLetterMessageRepositoryImpl implements DeadLetterMessageReposit
     @Override
     public void markFailed(long id, int retryCount, String lastError) {
         jdbcTemplate.update(MARK_FAILED_SQL, retryCount, lastError, id);
+    }
+
+    @Override
+    public int countByStatus(String status) {
+        Integer count = jdbcTemplate.queryForObject(COUNT_BY_STATUS_SQL, Integer.class, status);
+        return count != null ? count : 0;
     }
 
     private static Instant toInstant(Timestamp timestamp) {

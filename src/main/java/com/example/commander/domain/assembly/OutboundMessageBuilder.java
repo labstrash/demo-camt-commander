@@ -7,19 +7,29 @@ import com.example.commander.domain.message.PaymentTypeAllocation;
 import com.example.commander.domain.message.ReportContext;
 import com.example.commander.domain.message.ReportMessage;
 import com.example.commander.domain.message.ReportMessageEnvelope;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 /**
  * Builds outbound report messages from configuration trees and context.
+ *
+ * <p>Also the single choke point every message passes through exactly once — bundled,
+ * unbundled, or config-only, from any of the three {@link
+ * com.example.commander.domain.message.TriggerType} sources — so {@code
+ * commander.report.messages.generated} is counted here rather than in each caller.
  */
 @RequiredArgsConstructor
 @Component
 public class OutboundMessageBuilder {
+
+    private static final String MESSAGES_GENERATED_COUNTER = "commander.report.messages.generated";
+
     private final CorrelationIdGenerator correlationIdGenerator;
     private final ReportMessageIdGenerator messageIdGenerator;
     private final MessageIdValidator messageIdValidator;
+    private final MeterRegistry meterRegistry;
 
     /**
      * Builds a pipeline report message.
@@ -68,6 +78,17 @@ public class OutboundMessageBuilder {
                 .correlationId(correlationId)
                 .id(messageId)
                 .build();
+
+        meterRegistry
+                .counter(
+                        MESSAGES_GENERATED_COUNTER,
+                        "report_type",
+                        config.reportType().name(),
+                        "trigger_type",
+                        reportContext.triggerType().name(),
+                        "bundled",
+                        String.valueOf(scopeId == null))
+                .increment();
 
         // Build envelope
         return new ReportMessageEnvelope(payload, config.id(), scopeId);

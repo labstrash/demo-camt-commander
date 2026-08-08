@@ -20,6 +20,7 @@ import com.example.commander.domain.message.ReportMessageEnvelope;
 import com.example.commander.domain.message.ReportType;
 import com.example.commander.domain.message.TriggerType;
 import com.example.commander.domain.report.ReportWindow;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
@@ -33,8 +34,9 @@ class ReportMessageAssemblerTest {
     private final PaymentTypeGrouper grouper = new PaymentTypeGrouper(allocationMapper);
     private final MessageGroupingStrategyFactory strategyFactory = new MessageGroupingStrategyFactory(
             new BundledGroupingStrategy(grouper), new UnbundledGroupingStrategy(grouper));
+    private final SimpleMeterRegistry meterRegistry = new SimpleMeterRegistry();
     private final OutboundMessageBuilder messageBuilder = new OutboundMessageBuilder(
-            new CorrelationIdGenerator(), new ReportMessageIdGenerator(), new MessageIdValidator());
+            new CorrelationIdGenerator(), new ReportMessageIdGenerator(), new MessageIdValidator(), meterRegistry);
     private final ReportMessageAssembler service = new ReportMessageAssembler(messageBuilder, strategyFactory);
 
     @Test
@@ -268,6 +270,22 @@ class ReportMessageAssemblerTest {
                 .hasSizeLessThanOrEqualTo(35)
                 .startsWith("FIKASE52BT")
                 .contains("12345678");
+    }
+
+    @Test
+    void incrementsTheGeneratedMessagesCounterTaggedByReportTypeTriggerTypeAndBundled() {
+        ReportConfigTree tree = new ReportConfigTree(config(true), List.of());
+
+        service.assemble(tree, context());
+
+        double count = meterRegistry
+                .get("commander.report.messages.generated")
+                .tag("report_type", "CAMT054C")
+                .tag("trigger_type", "SCHEDULED")
+                .tag("bundled", "true")
+                .counter()
+                .count();
+        assertThat(count).isEqualTo(1.0);
     }
 
     private static ReportConfigRow config(boolean bundled) {

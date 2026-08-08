@@ -7,8 +7,8 @@ import java.util.List;
 /**
  * Repository for {@code CAMT.DeadLetterMessage} — messages {@link
  * com.example.commander.adapter.message.ResilientMqSender} couldn't deliver (retries
- * exhausted, permanent failure, or the circuit breaker was open), for a later active
- * recovery job to retry (deferred until Quartz exists — see the Phase 3 doc's Decision 6).
+ * exhausted, permanent failure, or the circuit breaker was open), retried by {@code
+ * DeadLetterRecoveryJob}.
  */
 public interface DeadLetterMessageRepository {
 
@@ -59,4 +59,14 @@ public interface DeadLetterMessageRepository {
      * @param lastError the failure's message
      */
     void markFailed(long id, int retryCount, String lastError);
+
+    /**
+     * Counts rows currently in the given status — {@code PENDING_RETRY} for the active
+     * recovery backlog, {@code FAILED} for terminally-given-up rows. Backs the {@code
+     * commander.deadletter.backlog} gauge.
+     *
+     * @param status the status to count
+     * @return the number of rows with that status
+     */
+    int countByStatus(String status);
 }

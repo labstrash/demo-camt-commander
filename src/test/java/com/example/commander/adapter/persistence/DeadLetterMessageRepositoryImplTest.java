@@ -137,6 +137,26 @@ class DeadLetterMessageRepositoryImplTest {
         verify(jdbcTemplate).update(anyString(), eq(5), eq("boom"), eq(42L));
     }
 
+    @Test
+    void countByStatusReturnsTheQueryResult() {
+        when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq("PENDING_RETRY")))
+                .thenReturn(7);
+
+        int count = repository.countByStatus("PENDING_RETRY");
+
+        assertThat(count).isEqualTo(7);
+    }
+
+    @Test
+    void countByStatusReturnsZeroRatherThanNull() {
+        when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class), eq("FAILED")))
+                .thenReturn(null);
+
+        int count = repository.countByStatus("FAILED");
+
+        assertThat(count).isZero();
+    }
+
     private PreparedStatementSetter capturedSetter() {
         ArgumentCaptor<PreparedStatementSetter> captor = ArgumentCaptor.forClass(PreparedStatementSetter.class);
         verify(jdbcTemplate).update(anyString(), captor.capture());
