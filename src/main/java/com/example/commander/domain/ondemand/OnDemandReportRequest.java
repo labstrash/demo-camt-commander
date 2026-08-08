@@ -8,7 +8,7 @@ import java.util.Objects;
  * A caller's request to trigger a report outside its schedule, published as a JSON body to
  * {@code CAMT.ONDEMAND.QUEUE}.
  *
- * @param recipientType recipient type (e.g., ORIGINATOR, BIC), resolved the same way the
+ * @param recipientType recipient type (e.g., SIGNER_ID, BIC), resolved the same way the
  *     scheduled path resolves recipients
  * @param recipientValue the recipient's delivery address/endpoint value
  * @param reportType the report type to generate

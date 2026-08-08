@@ -103,11 +103,11 @@ PRINT '  ✓ ' + CAST(@@ROWCOUNT AS VARCHAR) + ' rows inserted into AgreementSeq
     PRINT '  - Seeding Recipients...';
 
 INSERT INTO CAMT.Recipient (Type, Value, Name, CreatedAt, CreatedBy)
-VALUES (N'ORIGINATOR', N'3937231530REP0001', N'Team Nirvana A', SYSDATETIME(), N'seed');
+VALUES (N'SIGNER_ID', N'3937231530REP0001', N'Team Nirvana A', SYSDATETIME(), N'seed');
 SET @RecipientId1 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.Recipient (Type, Value, Name, CreatedAt, CreatedBy)
-VALUES (N'ORIGINATOR', N'767951290ORI0240', N'Team Nirvana B', SYSDATETIME(), N'seed');
+VALUES (N'SIGNER_ID', N'767951290ORI0240', N'Team Nirvana B', SYSDATETIME(), N'seed');
 SET @RecipientId2 = SCOPE_IDENTITY();
 
     PRINT '  ✓ 2 rows inserted into Recipient.';
@@ -178,7 +178,7 @@ SET @AgreementScopeId2 = SCOPE_IDENTITY();
     PRINT '  - Seeding PaymentTypeAssignment...';
 
 INSERT INTO CAMT.PaymentTypeAssignment (AgreementScopeId, PaymentType, CreatedAt, CreatedBy)
-VALUES (@AgreementScopeId1, N'CREDIT_TRANSFER', SYSDATETIME(), N'seed');
+VALUES (@AgreementScopeId1, N'INSTDOM', SYSDATETIME(), N'seed');
 SET @PaymentTypeAssignmentId1 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.PaymentTypeAssignment (AgreementScopeId, PaymentType, CreatedAt, CreatedBy)
@@ -253,7 +253,7 @@ PRINT '  ✓ ' + CAST(@@ROWCOUNT AS VARCHAR) + ' rows inserted into ReportAgreem
     PRINT '  - B.1: Zero-scope config...';
 
 INSERT INTO CAMT.Recipient (Type, Value, Name, CreatedAt, CreatedBy)
-VALUES (N'ORIGINATOR', N'EDGE-ZERO-0001', N'Edge Case - Zero Scope Ltd', SYSDATETIME(), N'seed');
+VALUES (N'SIGNER_ID', N'EDGE-ZERO-0001', N'Edge Case - Zero Scope Ltd', SYSDATETIME(), N'seed');
 SET @EdgeRecipientId1 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.ReportConfig
@@ -271,7 +271,7 @@ SET @EdgeConfigId1 = SCOPE_IDENTITY();
     PRINT '  - B.2: Dangling payment-type assignment...';
 
 INSERT INTO CAMT.Recipient (Type, Value, Name, CreatedAt, CreatedBy)
-VALUES (N'ORIGINATOR', N'EDGE-DANGLING-01', N'Edge Case - Dangling PTA AB', SYSDATETIME(), N'seed');
+VALUES (N'SIGNER_ID', N'EDGE-DANGLING-01', N'Edge Case - Dangling PTA AB', SYSDATETIME(), N'seed');
 SET @EdgeRecipientId2 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.Agreement
@@ -289,8 +289,10 @@ VALUES (@EdgeVersionId2, N'Edge Scope - Dangling PTA', @EdgeRecipientId2, N'CAMT
 SET @EdgeScopeId2 = SCOPE_IDENTITY();
 
     -- Deliberately no AccountAssignment / AliasAssignment rows for this PTA.
+    -- ALL, not INSTDOM/INCALIAS - this scope's ReportType is CAMT052B, and only
+    -- CAMT054C scopes use the INSTDOM/INCALIAS payment types.
 INSERT INTO CAMT.PaymentTypeAssignment (AgreementScopeId, PaymentType, CreatedAt, CreatedBy)
-VALUES (@EdgeScopeId2, N'INSTANT_PAYMENT', SYSDATETIME(), N'seed');
+VALUES (@EdgeScopeId2, N'ALL', SYSDATETIME(), N'seed');
 
 INSERT INTO CAMT.ReportConfig
 (ConfigId, ReportType, ReportVersion, ReportFrequency, Description, MessageRecipientId, AccountFormat, IsActive, IsPaginated, IsEmptyReportAllowed, IsBundled, CreatedAt, CreatedBy)
@@ -310,7 +312,7 @@ PRINT '  ✓ ReportConfig ' + CAST(@EdgeConfigId2 AS VARCHAR) + ' seeded with a 
     PRINT '  - B.3: Multi-scope fan-in...';
 
 INSERT INTO CAMT.Recipient (Type, Value, Name, CreatedAt, CreatedBy)
-VALUES (N'ORIGINATOR', N'EDGE-FANIN-0001', N'Edge Case - Multi-Scope Fan-In Corp', SYSDATETIME(), N'seed');
+VALUES (N'SIGNER_ID', N'EDGE-FANIN-0001', N'Edge Case - Multi-Scope Fan-In Corp', SYSDATETIME(), N'seed');
 SET @EdgeRecipientId3 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.Agreement
@@ -342,11 +344,11 @@ VALUES (@EdgeVersionId3B, N'Edge Scope - Fan-In B', @EdgeRecipientId3, N'CAMT054
 SET @EdgeScopeId3B = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.PaymentTypeAssignment (AgreementScopeId, PaymentType, CreatedAt, CreatedBy)
-VALUES (@EdgeScopeId3A, N'DIRECT_DEBIT', SYSDATETIME(), N'seed');
+VALUES (@EdgeScopeId3A, N'INCALIAS', SYSDATETIME(), N'seed');
 SET @EdgePtaId3A = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.PaymentTypeAssignment (AgreementScopeId, PaymentType, CreatedAt, CreatedBy)
-VALUES (@EdgeScopeId3B, N'CREDIT_TRANSFER', SYSDATETIME(), N'seed');
+VALUES (@EdgeScopeId3B, N'INSTDOM', SYSDATETIME(), N'seed');
 SET @EdgePtaId3B = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.AccountAssignment
@@ -376,10 +378,8 @@ PRINT '  ✓ ReportConfig ' + CAST(@EdgeConfigId3 AS VARCHAR) + ' seeded with 2 
     -- alias-routed payment), three dual-scope (independent report type per
     -- scope on the same agreement/version).
     --
-    -- PAYMENT TYPE TRANSLATION: source input used "INSTDOM" and "INCALIAS",
-    -- neither of which are seeded CAMT.PaymentType codes.
-    --   INSTDOM  -> INSTANT_PAYMENT (existing code)
-    --   INCALIAS -> ALIAS_PAYMENT   (new code added in 01-schema-reference.sql)
+    -- PAYMENT TYPE: source input uses "INSTDOM" and "INCALIAS" directly - both
+    -- are real CAMT.PaymentType codes, seeded as-is with no translation.
     -- =========================================================================
 
     PRINT '>>> Section C: Realistic multi-scope scenarios';
@@ -399,17 +399,17 @@ PRINT '  ✓ ' + CAST(@@ROWCOUNT AS VARCHAR) + ' rows inserted into AgreementSeq
     PRINT '';
 
     -- -------------------------------------------------------------------
-    -- C.1 Scenario 1: single scope, INSTANT_PAYMENT (ex-INSTDOM), 4x/day
+    -- C.1 Scenario 1: single scope, INSTDOM, 4x/day
     -- -------------------------------------------------------------------
-    PRINT '  - C.1: Scenario 1 - INSTANT_PAYMENT, single scope, 4x/day...';
+    PRINT '  - C.1: Scenario 1 - INSTDOM, single scope, 4x/day...';
 
 INSERT INTO CAMT.Recipient (Type, Value, Name, CreatedAt, CreatedBy)
-VALUES (N'ORIGINATOR', N'TEST-SCN-01', N'Test Recipient - Scenario 1', SYSDATETIME(), N'seed');
+VALUES (N'SIGNER_ID', N'TEST-SCN-01', N'Test Recipient - Scenario 1', SYSDATETIME(), N'seed');
 SET @CRecipientId1 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.Agreement
 (Id, Name, EngagementBank, EngagementId, Channel, Track, StartDate, CreatedAt, CreatedBy)
-VALUES (N'AGR-TEST-SCN-01', N'Test Agmt - INSTANT_PAYMENT 4x/Day', N'8999', N'061111111111', N'Customer Portal', N'NOTIFICATION', SYSDATETIME(), SYSDATETIME(), N'seed');
+VALUES (N'AGR-TEST-SCN-01', N'Test Agmt - INSTDOM 4x/Day', N'8999', N'061111111111', N'Customer Portal', N'NOTIFICATION', SYSDATETIME(), SYSDATETIME(), N'seed');
 
 INSERT INTO CAMT.AgreementVersion
 (VersionId, AgreementId, Status, PricingOrderRef, CreatedAt, ActivatedAt, CreatedBy, Version)
@@ -422,7 +422,7 @@ VALUES (@CVersionId1, N'CAMT054C - V02 - 4 TIMES', @CRecipientId1, N'CAMT054C', 
 SET @CScopeId1 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.PaymentTypeAssignment (AgreementScopeId, PaymentType, CreatedAt, CreatedBy)
-VALUES (@CScopeId1, N'INSTANT_PAYMENT', SYSDATETIME(), N'seed');
+VALUES (@CScopeId1, N'INSTDOM', SYSDATETIME(), N'seed');
 SET @CPtaId1 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.AccountAssignment
@@ -433,7 +433,7 @@ VALUES
 
 INSERT INTO CAMT.ReportConfig
 (ConfigId, ReportType, ReportVersion, ReportFrequency, Description, MessageRecipientId, AccountFormat, IsActive, IsPaginated, IsEmptyReportAllowed, IsBundled, CreatedAt, CreatedBy)
-VALUES (10000201, N'CAMT054C', N'V02', N'FOUR_TIMES_PER_DAY', N'Scenario 1 - INSTANT_PAYMENT notification, 4x/day', @CRecipientId1, N'IBAN', 1, 0, 1, 0, SYSDATETIME(), N'seed');
+VALUES (10000201, N'CAMT054C', N'V02', N'FOUR_TIMES_PER_DAY', N'Scenario 1 - INSTDOM notification, 4x/day', @CRecipientId1, N'IBAN', 1, 0, 1, 0, SYSDATETIME(), N'seed');
 SET @CConfigId1 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.ReportAgreementScope (ReportConfigId, AgreementScopeId, CreatedAt, CreatedBy)
@@ -443,17 +443,17 @@ VALUES (@CConfigId1, @CScopeId1, SYSDATETIME(), N'seed');
     PRINT '';
 
     -- -------------------------------------------------------------------
-    -- C.2 Scenario 2: single scope, ALIAS_PAYMENT (ex-INCALIAS), 1x/day
+    -- C.2 Scenario 2: single scope, INCALIAS, 1x/day
     -- -------------------------------------------------------------------
-    PRINT '  - C.2: Scenario 2 - ALIAS_PAYMENT, single scope, 1x/day...';
+    PRINT '  - C.2: Scenario 2 - INCALIAS, single scope, 1x/day...';
 
 INSERT INTO CAMT.Recipient (Type, Value, Name, CreatedAt, CreatedBy)
-VALUES (N'ORIGINATOR', N'TEST-SCN-02', N'Test Recipient - Scenario 2', SYSDATETIME(), N'seed');
+VALUES (N'SIGNER_ID', N'TEST-SCN-02', N'Test Recipient - Scenario 2', SYSDATETIME(), N'seed');
 SET @CRecipientId2 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.Agreement
 (Id, Name, EngagementBank, EngagementId, Channel, Track, StartDate, CreatedAt, CreatedBy)
-VALUES (N'AGR-TEST-SCN-02', N'Test Agmt - ALIAS_PAYMENT 1x/Day', N'8999', N'061111111112', N'Customer Portal', N'NOTIFICATION', SYSDATETIME(), SYSDATETIME(), N'seed');
+VALUES (N'AGR-TEST-SCN-02', N'Test Agmt - INCALIAS 1x/Day', N'8999', N'061111111112', N'Customer Portal', N'NOTIFICATION', SYSDATETIME(), SYSDATETIME(), N'seed');
 
 INSERT INTO CAMT.AgreementVersion
 (VersionId, AgreementId, Status, PricingOrderRef, CreatedAt, ActivatedAt, CreatedBy, Version)
@@ -466,7 +466,7 @@ VALUES (@CVersionId2, N'CAMT054C - V02 - 1 TIME', @CRecipientId2, N'CAMT054C', N
 SET @CScopeId2 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.PaymentTypeAssignment (AgreementScopeId, PaymentType, CreatedAt, CreatedBy)
-VALUES (@CScopeId2, N'ALIAS_PAYMENT', SYSDATETIME(), N'seed');
+VALUES (@CScopeId2, N'INCALIAS', SYSDATETIME(), N'seed');
 SET @CPtaId2 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.AliasAssignment (PaymentTypeAssignmentId, AliasId, CreatedAt, CreatedBy)
@@ -476,7 +476,7 @@ VALUES
 
 INSERT INTO CAMT.ReportConfig
 (ConfigId, ReportType, ReportVersion, ReportFrequency, Description, MessageRecipientId, AccountFormat, IsActive, IsPaginated, IsEmptyReportAllowed, IsBundled, CreatedAt, CreatedBy)
-VALUES (10000202, N'CAMT054C', N'V02', N'ONE_TIME_PER_DAY', N'Scenario 2 - ALIAS_PAYMENT notification, 1x/day', @CRecipientId2, N'IBAN', 1, 0, 1, 0, SYSDATETIME(), N'seed');
+VALUES (10000202, N'CAMT054C', N'V02', N'ONE_TIME_PER_DAY', N'Scenario 2 - INCALIAS notification, 1x/day', @CRecipientId2, N'IBAN', 1, 0, 1, 0, SYSDATETIME(), N'seed');
 SET @CConfigId2 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.ReportAgreementScope (ReportConfigId, AgreementScopeId, CreatedAt, CreatedBy)
@@ -491,7 +491,7 @@ VALUES (@CConfigId2, @CScopeId2, SYSDATETIME(), N'seed');
     PRINT '  - C.3: Scenario 3 - dual scope (Daily + Every-2-Hours)...';
 
 INSERT INTO CAMT.Recipient (Type, Value, Name, CreatedAt, CreatedBy)
-VALUES (N'ORIGINATOR', N'TEST-SCN-03', N'Test Recipient - Scenario 3', SYSDATETIME(), N'seed');
+VALUES (N'SIGNER_ID', N'TEST-SCN-03', N'Test Recipient - Scenario 3', SYSDATETIME(), N'seed');
 SET @CRecipientId3 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.Agreement
@@ -553,7 +553,7 @@ VALUES
     PRINT '  - C.4: Scenario 4 - dual scope (Every-4-Hours + Daily Bundled)...';
 
 INSERT INTO CAMT.Recipient (Type, Value, Name, CreatedAt, CreatedBy)
-VALUES (N'ORIGINATOR', N'TEST-SCN-04', N'Test Recipient - Scenario 4', SYSDATETIME(), N'seed');
+VALUES (N'SIGNER_ID', N'TEST-SCN-04', N'Test Recipient - Scenario 4', SYSDATETIME(), N'seed');
 SET @CRecipientId4 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.Agreement
@@ -615,7 +615,7 @@ VALUES
     PRINT '  - C.5: Scenario 5 - dual scope (Hourly + Every-4-Hours Bundled)...';
 
 INSERT INTO CAMT.Recipient (Type, Value, Name, CreatedAt, CreatedBy)
-VALUES (N'ORIGINATOR', N'TEST-SCN-05', N'Test Recipient - Scenario 5', SYSDATETIME(), N'seed');
+VALUES (N'SIGNER_ID', N'TEST-SCN-05', N'Test Recipient - Scenario 5', SYSDATETIME(), N'seed');
 SET @CRecipientId5 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.Agreement
@@ -676,9 +676,12 @@ VALUES
     -- =========================================================================
     -- SECTION D: MULTI-PAYMENT-TYPE SCOPE & REMAINING FREQUENCY COVERAGE
     --   D.1 - a single AgreementScope with TWO PaymentTypeAssignment rows
-    --         (CREDIT_TRANSFER + DIRECT_DEBIT), each with its own account -
-    --         nothing before this exercised a scope fanning out to more
-    --         than one payment type. Also covers EVERY_4_HOURS.
+    --         (INSTDOM + INCALIAS), each with its own account - nothing
+    --         before this exercised a scope fanning out to more than one
+    --         payment type. ReportType is CAMT054C: INSTDOM/INCALIAS are
+    --         only valid payment types under CAMT054C scopes, so this can't
+    --         be demonstrated under any other report type. EVERY_4_HOURS
+    --         coverage comes from Section C (C.4/C.5) instead.
     --   D.2/D.3/D.4 - simple single-scope agreements covering the three
     --         remaining ReportFrequency codes no seed data used yet:
     --         EVERY_30_MIN, EVERY_2_HOURS, EIGHT_TIMES_PER_DAY.
@@ -688,13 +691,13 @@ VALUES
     PRINT '';
 
     -- -------------------------------------------------------------------
-    -- D.1 Multi-PaymentType scope: CREDIT_TRANSFER + DIRECT_DEBIT under
+    -- D.1 Multi-PaymentType scope: INSTDOM + INCALIAS under
     --     one AgreementScope, each with its own funded account.
     -- -------------------------------------------------------------------
-    PRINT '  - D.1: Multi-payment-type scope (CREDIT_TRANSFER + DIRECT_DEBIT)...';
+    PRINT '  - D.1: Multi-payment-type scope (INSTDOM + INCALIAS)...';
 
 INSERT INTO CAMT.Recipient (Type, Value, Name, CreatedAt, CreatedBy)
-VALUES (N'ORIGINATOR', N'TEST-MULTI-PTA-01', N'Test Recipient - Multi-PaymentType Scope', SYSDATETIME(), N'seed');
+VALUES (N'SIGNER_ID', N'TEST-MULTI-PTA-01', N'Test Recipient - Multi-PaymentType Scope', SYSDATETIME(), N'seed');
 SET @DRecipientId1 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.Agreement
@@ -708,15 +711,15 @@ SET @DVersionId1 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.AgreementScope
 (AgreementVersionId, Name, MessageRecipientId, ReportType, Status, CreatedAt, ActivatedAt, CreatedBy)
-VALUES (@DVersionId1, N'CAMT052BT - V02 - EVERY_4_HOURS (Multi-PaymentType)', @DRecipientId1, N'CAMT052BT', N'ACTIVE', SYSDATETIME(), SYSDATETIME(), N'seed');
+VALUES (@DVersionId1, N'CAMT054C - V02 - FOUR_TIMES_PER_DAY (Multi-PaymentType)', @DRecipientId1, N'CAMT054C', N'ACTIVE', SYSDATETIME(), SYSDATETIME(), N'seed');
 SET @DScopeId1 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.PaymentTypeAssignment (AgreementScopeId, PaymentType, CreatedAt, CreatedBy)
-VALUES (@DScopeId1, N'CREDIT_TRANSFER', SYSDATETIME(), N'seed');
+VALUES (@DScopeId1, N'INSTDOM', SYSDATETIME(), N'seed');
 SET @DPtaId1CT = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.PaymentTypeAssignment (AgreementScopeId, PaymentType, CreatedAt, CreatedBy)
-VALUES (@DScopeId1, N'DIRECT_DEBIT', SYSDATETIME(), N'seed');
+VALUES (@DScopeId1, N'INCALIAS', SYSDATETIME(), N'seed');
 SET @DPtaId1DD = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.AccountAssignment
@@ -727,7 +730,7 @@ VALUES
 
 INSERT INTO CAMT.ReportConfig
 (ConfigId, ReportType, ReportVersion, ReportFrequency, Description, MessageRecipientId, AccountFormat, IsActive, IsPaginated, IsEmptyReportAllowed, IsBundled, CreatedAt, CreatedBy)
-VALUES (10000209, N'CAMT052BT', N'V02', N'EVERY_4_HOURS', N'Multi-payment-type scope (CREDIT_TRANSFER + DIRECT_DEBIT), bundled', @DRecipientId1, N'IBAN', 1, 0, 1, 1, SYSDATETIME(), N'seed');
+VALUES (10000209, N'CAMT054C', N'V02', N'FOUR_TIMES_PER_DAY', N'Multi-payment-type scope (INSTDOM + INCALIAS), bundled', @DRecipientId1, N'IBAN', 1, 0, 1, 1, SYSDATETIME(), N'seed');
 SET @DConfigId1 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.ReportAgreementScope (ReportConfigId, AgreementScopeId, CreatedAt, CreatedBy)
@@ -742,7 +745,7 @@ VALUES (@DConfigId1, @DScopeId1, SYSDATETIME(), N'seed');
     PRINT '  - D.2: EVERY_30_MIN frequency coverage...';
 
 INSERT INTO CAMT.Recipient (Type, Value, Name, CreatedAt, CreatedBy)
-VALUES (N'ORIGINATOR', N'TEST-FREQ-30MIN', N'Test Recipient - EVERY_30_MIN Coverage', SYSDATETIME(), N'seed');
+VALUES (N'SIGNER_ID', N'TEST-FREQ-30MIN', N'Test Recipient - EVERY_30_MIN Coverage', SYSDATETIME(), N'seed');
 SET @DRecipientId2 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.Agreement
@@ -784,7 +787,7 @@ VALUES (@DConfigId2, @DScopeId2, SYSDATETIME(), N'seed');
     PRINT '  - D.3: EVERY_2_HOURS frequency coverage...';
 
 INSERT INTO CAMT.Recipient (Type, Value, Name, CreatedAt, CreatedBy)
-VALUES (N'ORIGINATOR', N'TEST-FREQ-2HR', N'Test Recipient - EVERY_2_HOURS Coverage', SYSDATETIME(), N'seed');
+VALUES (N'SIGNER_ID', N'TEST-FREQ-2HR', N'Test Recipient - EVERY_2_HOURS Coverage', SYSDATETIME(), N'seed');
 SET @DRecipientId3 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.Agreement
@@ -826,7 +829,7 @@ VALUES (@DConfigId3, @DScopeId3, SYSDATETIME(), N'seed');
     PRINT '  - D.4: EIGHT_TIMES_PER_DAY frequency coverage...';
 
 INSERT INTO CAMT.Recipient (Type, Value, Name, CreatedAt, CreatedBy)
-VALUES (N'ORIGINATOR', N'TEST-FREQ-8XDAY', N'Test Recipient - EIGHT_TIMES_PER_DAY Coverage', SYSDATETIME(), N'seed');
+VALUES (N'SIGNER_ID', N'TEST-FREQ-8XDAY', N'Test Recipient - EIGHT_TIMES_PER_DAY Coverage', SYSDATETIME(), N'seed');
 SET @DRecipientId4 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.Agreement
@@ -844,7 +847,7 @@ VALUES (@DVersionId4, N'CAMT054C - V02 - EIGHT_TIMES', @DRecipientId4, N'CAMT054
 SET @DScopeId4 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.PaymentTypeAssignment (AgreementScopeId, PaymentType, CreatedAt, CreatedBy)
-VALUES (@DScopeId4, N'INSTANT_PAYMENT', SYSDATETIME(), N'seed');
+VALUES (@DScopeId4, N'INSTDOM', SYSDATETIME(), N'seed');
 SET @DPtaId4 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.AccountAssignment
@@ -887,7 +890,7 @@ VALUES (@DConfigId4, @DScopeId4, SYSDATETIME(), N'seed');
     PRINT '  - E.1: Version history (REPLACED then ACTIVE)...';
 
 INSERT INTO CAMT.Recipient (Type, Value, Name, CreatedAt, CreatedBy)
-VALUES (N'ORIGINATOR', N'TEST-VERHIST-01', N'Test Recipient - Version History', SYSDATETIME(), N'seed');
+VALUES (N'SIGNER_ID', N'TEST-VERHIST-01', N'Test Recipient - Version History', SYSDATETIME(), N'seed');
 SET @ERecipientId1 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.Agreement
@@ -934,7 +937,7 @@ VALUES (@EConfigId1, @EScopeId1, SYSDATETIME(), N'seed');
     PRINT '  - E.2: Pending activation (no ACTIVE version yet)...';
 
 INSERT INTO CAMT.Recipient (Type, Value, Name, CreatedAt, CreatedBy)
-VALUES (N'ORIGINATOR', N'TEST-PENDING-01', N'Test Recipient - Pending Activation', SYSDATETIME(), N'seed');
+VALUES (N'SIGNER_ID', N'TEST-PENDING-01', N'Test Recipient - Pending Activation', SYSDATETIME(), N'seed');
 SET @ERecipientId2 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.Agreement
@@ -977,7 +980,7 @@ VALUES (@EConfigId2, @EScopeId2, SYSDATETIME(), N'seed');
     PRINT '  - E.3: Cancelled scope alongside an active scope...';
 
 INSERT INTO CAMT.Recipient (Type, Value, Name, CreatedAt, CreatedBy)
-VALUES (N'ORIGINATOR', N'TEST-CANCELLED-01', N'Test Recipient - Cancelled Scope', SYSDATETIME(), N'seed');
+VALUES (N'SIGNER_ID', N'TEST-CANCELLED-01', N'Test Recipient - Cancelled Scope', SYSDATETIME(), N'seed');
 SET @ERecipientId3 = SCOPE_IDENTITY();
 
 INSERT INTO CAMT.Agreement

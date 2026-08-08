@@ -88,7 +88,6 @@ PRINT '  ✓ ' + CAST(@@ROWCOUNT AS VARCHAR) + ' rows inserted into ReportType.'
     PRINT '  - Inserting ReportFrequency data...';
 INSERT INTO CAMT.ReportFrequency (Code, Description)
 VALUES
-    ('SNAPSHOT',           'Snapshot report - no time window'),
     ('EVERY_30_MIN',       'Every 30 minutes'),
     ('EVERY_1_HOUR',       'Every 1 hour'),
     ('EVERY_2_HOURS',      'Every 2 hours'),
@@ -104,10 +103,8 @@ PRINT '  ✓ ' + CAST(@@ROWCOUNT AS VARCHAR) + ' rows inserted into ReportFreque
 INSERT INTO CAMT.PaymentType (Code, Description)
 VALUES
     ('ALL', N'Default payment type — used for non-CAMT054 and CAMT054_DEBIT callers'),
-    ('CREDIT_TRANSFER', 'Credit transfer'),
-    ('DIRECT_DEBIT', 'Direct debit'),
-    ('INSTANT_PAYMENT', 'Instant payment'),
-    ('ALIAS_PAYMENT', 'Payment addressed via an alias identifier (e.g. mobile number) rather than an account number');
+    ('INCALIAS', 'Incoming payment addressed via an alias identifier (e.g. mobile number)'),
+    ('INSTDOM', 'Instant domestic payment');
 PRINT '  ✓ ' + CAST(@@ROWCOUNT AS VARCHAR) + ' rows inserted into PaymentType.';
 
     PRINT '✓ All seed data inserted successfully.';

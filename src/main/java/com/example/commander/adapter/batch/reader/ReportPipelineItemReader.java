@@ -185,7 +185,7 @@ public class ReportPipelineItemReader extends AbstractItemStreamItemReader<Repor
         // RecipientResolvingReportMessageProcessor once it looks up the real recipient — never
         // read by anything in between.
         Recipient placeholderRecipient =
-                new Recipient(config.messageRecipientId(), RecipientType.ORIGINATOR, "UNRESOLVED", "UNRESOLVED");
+                new Recipient(config.messageRecipientId(), RecipientType.SIGNER_ID, "UNRESOLVED", "UNRESOLVED");
         return new AssemblyContext(reportContext, placeholderRecipient, null);
     }
 

@@ -22,7 +22,7 @@ public interface ReportConfigRepository {
     /**
      * Finds a recipient by type and value.
      *
-     * @param type recipient type (e.g., ORIGINATOR, BIC — validated by the {@code MessageRecipientType} enum)
+     * @param type recipient type (e.g., SIGNER_ID, BIC — validated by the {@code MessageRecipientType} enum)
      * @param value delivery value or endpoint
      * @return the recipient if found, or empty if no match
      */
