@@ -1,6 +1,8 @@
 package com.example.commander.adapter.persistence;
 
 import jakarta.validation.constraints.Positive;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -12,6 +14,8 @@ import org.springframework.validation.annotation.Validated;
  *
  * <p>Configured via {@code commander.read} prefix in application properties.
  */
+@Setter
+@Getter
 @Validated
 @ConfigurationProperties(prefix = "commander.read")
 public class ReportConfigReadProperties {
@@ -24,28 +28,4 @@ public class ReportConfigReadProperties {
 
     /** Query timeout for TVP-backed staged queries. */
     @Positive private int tvpQueryTimeoutSeconds = 15;
-
-    public int getPageSize() {
-        return pageSize;
-    }
-
-    public void setPageSize(int pageSize) {
-        this.pageSize = pageSize;
-    }
-
-    public int getStagedQueryTimeoutSeconds() {
-        return stagedQueryTimeoutSeconds;
-    }
-
-    public void setStagedQueryTimeoutSeconds(int stagedQueryTimeoutSeconds) {
-        this.stagedQueryTimeoutSeconds = stagedQueryTimeoutSeconds;
-    }
-
-    public int getTvpQueryTimeoutSeconds() {
-        return tvpQueryTimeoutSeconds;
-    }
-
-    public void setTvpQueryTimeoutSeconds(int tvpQueryTimeoutSeconds) {
-        this.tvpQueryTimeoutSeconds = tvpQueryTimeoutSeconds;
-    }
 }

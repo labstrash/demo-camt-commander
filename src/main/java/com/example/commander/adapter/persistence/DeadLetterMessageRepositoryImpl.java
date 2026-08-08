@@ -9,22 +9,18 @@ import java.time.Instant;
 import java.util.Calendar;
 import java.util.List;
 import java.util.TimeZone;
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 /**
  * JDBC implementation of {@link DeadLetterMessageRepository}.
- *
- * <p>Every {@code DATETIME2} column is bound/read with an explicit UTC {@link Calendar} —
- * {@code PreparedStatement.setTimestamp}/{@code ResultSet.getTimestamp} without one silently
- * convert through the JVM's default timezone instead of leaving the instant alone, which on
- * a non-UTC host (this one runs {@code Europe/Stockholm}) shifts every stored/read value by
- * the zone offset. {@code GETUTCDATE()} (used SQL-side for {@code created_at}/{@code
- * updated_at} defaults and the {@code findDueForRetry} comparison) isn't affected — the
- * driver only touches values that cross the Java boundary.
+ * All {@code DATETIME2} columns are bound/read with an explicit UTC calendar to avoid
+ * JVM default timezone conversions.
  */
 @Repository
+@RequiredArgsConstructor
 public class DeadLetterMessageRepositoryImpl implements DeadLetterMessageRepository {
 
     private static final TimeZone UTC = TimeZone.getTimeZone("UTC");
@@ -33,7 +29,7 @@ public class DeadLetterMessageRepositoryImpl implements DeadLetterMessageReposit
             rs.getLong("id"),
             rs.getString("message_id"),
             rs.getLong("report_config_id"),
-            (Long) rs.getObject("agreement_scope_id", Long.class),
+            rs.getObject("agreement_scope_id", Long.class),
             ReportType.valueOf(rs.getString("report_type")),
             rs.getString("message_payload"),
             rs.getString("target_queue"),
@@ -76,10 +72,6 @@ public class DeadLetterMessageRepositoryImpl implements DeadLetterMessageReposit
             """;
 
     private final JdbcTemplate jdbcTemplate;
-
-    public DeadLetterMessageRepositoryImpl(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     public void insert(DeadLetterMessage row) {

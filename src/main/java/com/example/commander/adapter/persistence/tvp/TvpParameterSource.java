@@ -16,9 +16,6 @@ import java.util.Collection;
  *
  * <p>This helper requires the SQL Server JDBC driver and the {@code dbo.BigIntIdList}
  * user-defined table type to exist in the database.
- *
- * <p>Methods using this helper should be integration-tested against a real SQL Server
- * (e.g., Testcontainers) as the driver-specific API cannot be easily mocked.
  */
 public final class TvpParameterSource {
 

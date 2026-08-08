@@ -9,18 +9,17 @@ import java.sql.Types;
 import java.time.Instant;
 import java.util.Calendar;
 import java.util.TimeZone;
+import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 /**
  * JDBC implementation of {@link ReportCommandAuditRepository}.
- *
- * <p>Every {@code DATETIME2} column is bound with an explicit UTC {@link Calendar} — same
- * reasoning as {@code JdbcDeadLetterMessageRepository}: {@code
- * PreparedStatement.setTimestamp} without one silently converts through the JVM's default
- * timezone instead of leaving the instant alone.
+ * All {@code DATETIME2} columns are bound/read with an explicit UTC calendar to avoid
+ * JVM default timezone conversions.
  */
 @Repository
+@RequiredArgsConstructor
 public class ReportCommandAuditRepositoryImpl implements ReportCommandAuditRepository {
 
     private static final TimeZone UTC = TimeZone.getTimeZone("UTC");
@@ -36,17 +35,11 @@ public class ReportCommandAuditRepositoryImpl implements ReportCommandAuditRepos
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
 
-    // SQL Server's DELETE TOP (N) doesn't accept a bind parameter for N — has to be a
-    // literal in the statement text. Safe here: limit is always an int this class controls
-    // the formatting of, never user/caller-supplied text.
+    // DELETE TOP requires a literal; limit is a controlled property, safe from injection.
     private static final String DELETE_OLDER_THAN_SQL_TEMPLATE =
             "DELETE TOP (%d) FROM CAMT.ReportCommandAudit WHERE sent_at < ?";
 
     private final JdbcTemplate jdbcTemplate;
-
-    public ReportCommandAuditRepositoryImpl(JdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
-    }
 
     @Override
     public void insert(ReportCommandAuditEntry entry) {

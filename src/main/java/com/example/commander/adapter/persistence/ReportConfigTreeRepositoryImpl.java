@@ -13,8 +13,7 @@ import com.example.commander.port.ReportConfigTreeRepository;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -31,10 +30,9 @@ import org.springframework.stereotype.Repository;
  * {@code IN (...)} query. Levels 2→3 and 3→4 (assignments, accounts, aliases) can be
  * unbounded and therefore use Table-Valued Parameters (TVP) to avoid SQL parameter limits.
  */
+@Slf4j
 @Repository
 public class ReportConfigTreeRepositoryImpl implements ReportConfigTreeRepository {
-
-    private static final Logger log = LoggerFactory.getLogger(ReportConfigTreeRepositoryImpl.class);
 
     /** Maximum safe size for the level 1→2 plain IN-list query. */
     private static final int SCOPE_QUERY_SAFE_IN_LIST_SIZE = 2000;
@@ -84,11 +82,16 @@ public class ReportConfigTreeRepositoryImpl implements ReportConfigTreeRepositor
     public ReportConfigTreeRepositoryImpl(JdbcTemplate jdbcTemplate, ReportConfigReadProperties properties) {
         this.jdbcTemplate = jdbcTemplate;
         this.properties = properties;
+        this.namedJdbcTemplate = scopedNamedTemplate(jdbcTemplate, properties);
+    }
 
-        // Create a scoped JdbcTemplate with its own timeout to avoid mutating the shared bean
-        JdbcTemplate scopedJdbcTemplate = new JdbcTemplate(jdbcTemplate.getDataSource());
-        scopedJdbcTemplate.setQueryTimeout(properties.getStagedQueryTimeoutSeconds());
-        this.namedJdbcTemplate = new NamedParameterJdbcTemplate(scopedJdbcTemplate);
+    // Own JdbcTemplate/timeout, not the shared bean's — avoids mutating a template other
+    // repositories also use.
+    private static NamedParameterJdbcTemplate scopedNamedTemplate(
+            JdbcTemplate jdbcTemplate, ReportConfigReadProperties properties) {
+        JdbcTemplate scoped = new JdbcTemplate(jdbcTemplate.getDataSource());
+        scoped.setQueryTimeout(properties.getStagedQueryTimeoutSeconds());
+        return new NamedParameterJdbcTemplate(scoped);
     }
 
     @Override
