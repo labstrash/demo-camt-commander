@@ -16,8 +16,13 @@ import java.util.Objects;
  * @param configId surrogate ID of the originating {@code ReportConfig} row
  * @param scopeId the single originating scope ID for unbundled messages, or
  *     {@code null} for bundled/config-only messages, which have no single scope
+ * @param recipientId the recipient's internal DB row id, present only between the reader
+ *     stashing it on the placeholder message's {@link AssemblyContext} and {@code
+ *     RecipientResolvingReportMessageProcessor} resolving it — {@code null} once resolved,
+ *     and for every non-scheduled path. Deliberately not part of {@link Recipient}/{@link
+ *     ReportMessage} itself, since {@link #payload()} is what gets serialized to MQ.
  */
-public record ReportMessageEnvelope(ReportMessage payload, long configId, Long scopeId) {
+public record ReportMessageEnvelope(ReportMessage payload, long configId, Long scopeId, Long recipientId) {
     public ReportMessageEnvelope {
         Objects.requireNonNull(payload, "payload cannot be null");
         if (configId <= 0) {
@@ -32,6 +37,14 @@ public record ReportMessageEnvelope(ReportMessage payload, long configId, Long s
                             + "bundled=%s, scopeId=%s",
                     payload.bundled(), scopeId));
         }
+    }
+
+    /**
+     * Every writer/audit/dead-letter call site downstream of resolution has no unresolved
+     * recipientId to carry — this keeps them unchanged.
+     */
+    public ReportMessageEnvelope(ReportMessage payload, long configId, Long scopeId) {
+        this(payload, configId, scopeId, null);
     }
 
     public boolean isBundled() {

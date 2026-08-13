@@ -17,6 +17,7 @@ import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.infrastructure.item.ExecutionContext;
@@ -178,13 +179,13 @@ public class ReportPipelineItemReader extends AbstractItemStreamItemReader<Repor
         ReportConfigRow config = tree.config();
         ReportContext reportContext = new ReportContext(
                 new ReportWindow(windowStartUtc, windowEndUtc), config.reportVersion(), TriggerType.SCHEDULED);
-        // Placeholder recipient: only `id` (config.messageRecipientId()) is real here. The
-        // type/value/name are unresolved at read time and are fully overwritten by
-        // RecipientResolvingReportMessageProcessor once it looks up the real recipient — never
-        // read by anything in between.
-        Recipient placeholderRecipient =
-                new Recipient(config.messageRecipientId(), RecipientType.SIGNER_ID, "UNRESOLVED", "UNRESOLVED");
-        return new AssemblyContext(reportContext, placeholderRecipient, null);
+        // Placeholder recipient: type/value/name are unresolved at read time and are fully
+        // overwritten by RecipientResolvingReportMessageProcessor once it looks up the real
+        // recipient — never read by anything in between. The actual lookup key,
+        // config.messageRecipientId(), travels separately via AssemblyContext#recipientId()
+        // (not on Recipient itself, which ends up inside the wire-serialized ReportMessage).
+        Recipient placeholderRecipient = new Recipient(RecipientType.SIGNER_ID, "UNRESOLVED", "UNRESOLVED");
+        return new AssemblyContext(reportContext, placeholderRecipient, null, Map.of(), config.messageRecipientId());
     }
 
     private record TreeGroup(long configId, Deque<ReportMessageEnvelope> items) {}

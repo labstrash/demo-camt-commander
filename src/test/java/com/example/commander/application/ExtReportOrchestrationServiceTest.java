@@ -270,7 +270,7 @@ class ExtReportOrchestrationServiceTest {
                 false,
                 false,
                 TriggerType.EXTERNAL,
-                new Recipient(999L, RecipientType.BIC, "SNDOSESSXXX", "Riksgaldskontoret"),
+                new Recipient(RecipientType.BIC, "SNDOSESSXXX", "Riksgaldskontoret"),
                 paymentTypes,
                 null,
                 correlationId,

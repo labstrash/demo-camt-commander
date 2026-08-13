@@ -235,7 +235,7 @@ class OnDemandReportServiceTest {
                 false,
                 false,
                 TriggerType.ON_DEMAND,
-                new Recipient(999L, RecipientType.BIC, "SOMEBIC", "Some Recipient"),
+                new Recipient(RecipientType.BIC, "SOMEBIC", "Some Recipient"),
                 List.of(),
                 "alice",
                 "corr-id-" + java.util.UUID.randomUUID(),

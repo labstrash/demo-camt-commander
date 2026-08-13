@@ -86,7 +86,7 @@ class MqReportMessageWriterTest {
                 true,
                 true,
                 TriggerType.SCHEDULED,
-                new Recipient(999L, RecipientType.BIC, "SOMEBIC", "Some Recipient"),
+                new Recipient(RecipientType.BIC, "SOMEBIC", "Some Recipient"),
                 List.of(),
                 null,
                 correlationId,

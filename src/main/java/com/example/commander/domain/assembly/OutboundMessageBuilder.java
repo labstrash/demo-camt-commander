@@ -90,7 +90,8 @@ public class OutboundMessageBuilder {
                         String.valueOf(scopeId == null))
                 .increment();
 
-        // Build envelope
-        return new ReportMessageEnvelope(payload, config.id(), scopeId);
+        // Build envelope — carries context.recipientId() forward for the scheduled pipeline's
+        // still-unresolved placeholder recipient (null for every already-resolved path)
+        return new ReportMessageEnvelope(payload, config.id(), scopeId, context.recipientId());
     }
 }

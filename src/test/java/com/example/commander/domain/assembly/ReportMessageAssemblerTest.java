@@ -334,7 +334,7 @@ class ReportMessageAssemblerTest {
                 new ReportWindow(Instant.parse("2026-07-01T00:00:00Z"), Instant.parse("2026-07-02T00:00:00Z")),
                 "1.0",
                 TriggerType.SCHEDULED);
-        Recipient recipient = new Recipient(999L, RecipientType.BIC, "SOMEBIC", "Some Recipient");
+        Recipient recipient = new Recipient(RecipientType.BIC, "SOMEBIC", "Some Recipient");
         return new AssemblyContext(reportContext, recipient, null);
     }
 
@@ -343,7 +343,7 @@ class ReportMessageAssemblerTest {
                 new ReportWindow(Instant.parse("2026-07-01T00:00:00Z"), Instant.parse("2026-07-02T00:00:00Z")),
                 "1.0",
                 TriggerType.EXTERNAL);
-        Recipient recipient = new Recipient(999L, RecipientType.BIC, "SOMEBIC", "Some Recipient");
+        Recipient recipient = new Recipient(RecipientType.BIC, "SOMEBIC", "Some Recipient");
         return new AssemblyContext(reportContext, recipient, null, balances);
     }
 }

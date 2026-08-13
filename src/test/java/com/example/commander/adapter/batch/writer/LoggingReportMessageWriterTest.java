@@ -30,7 +30,7 @@ class LoggingReportMessageWriterTest {
                 true,
                 true,
                 TriggerType.SCHEDULED,
-                new Recipient(999L, RecipientType.SIGNER_ID, "UNRESOLVED", "UNRESOLVED"),
+                new Recipient(RecipientType.SIGNER_ID, "UNRESOLVED", "UNRESOLVED"),
                 List.of(),
                 null,
                 "corr-id",

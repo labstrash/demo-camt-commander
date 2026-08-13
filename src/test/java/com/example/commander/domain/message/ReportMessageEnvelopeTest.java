@@ -70,7 +70,7 @@ class ReportMessageEnvelopeTest {
                 .isPaginated(false)
                 .isEmptyReportAllowed(false)
                 .triggerType(TriggerType.SCHEDULED)
-                .recipient(new Recipient(999L, RecipientType.BIC, "SOMEBIC", "Some Recipient"))
+                .recipient(new Recipient(RecipientType.BIC, "SOMEBIC", "Some Recipient"))
                 .paymentTypeGroups(List.of())
                 .correlationId("corr-id")
                 .id("FIKASE054C123450Q9Z6XZHPAH5R0000")

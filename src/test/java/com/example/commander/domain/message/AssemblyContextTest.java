@@ -14,7 +14,7 @@ class AssemblyContextTest {
             new ReportWindow(Instant.parse("2026-07-01T00:00:00Z"), Instant.parse("2026-07-02T00:00:00Z")),
             "1.0",
             TriggerType.SCHEDULED);
-    private static final Recipient RECIPIENT = new Recipient(999L, RecipientType.BIC, "SOMEBIC", "Some Recipient");
+    private static final Recipient RECIPIENT = new Recipient(RecipientType.BIC, "SOMEBIC", "Some Recipient");
 
     @Test
     void constructsWithNullRequestorNameForScheduledRuns() {

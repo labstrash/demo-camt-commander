@@ -34,9 +34,11 @@ class RecipientResolvingReportMessageProcessorTest {
 
         assertThat(result).isNotNull();
         assertThat(result.payload().recipient())
-                .isEqualTo(new Recipient(999L, RecipientType.BIC, "SOMEBIC", "Some Recipient"));
+                .isEqualTo(new Recipient(RecipientType.BIC, "SOMEBIC", "Some Recipient"));
         assertThat(result.configId()).isEqualTo(item.configId());
         assertThat(result.scopeId()).isEqualTo(item.scopeId());
+        // recipientId is consumed by resolution — the resolved envelope no longer carries it
+        assertThat(result.recipientId()).isNull();
         // id is non-deterministic — must be threaded forward unchanged, never regenerated
         assertThat(result.payload().id()).isEqualTo(item.payload().id());
         assertThat(result.payload().correlationId()).isEqualTo(item.payload().correlationId());
@@ -67,11 +69,11 @@ class RecipientResolvingReportMessageProcessorTest {
                 true,
                 true,
                 TriggerType.SCHEDULED,
-                new Recipient(999L, RecipientType.SIGNER_ID, "UNRESOLVED", "UNRESOLVED"),
+                new Recipient(RecipientType.SIGNER_ID, "UNRESOLVED", "UNRESOLVED"),
                 List.of(),
                 null,
                 "corr-id",
                 "FIKASE054C123450Q9Z6XZHPAH5R0000");
-        return new ReportMessageEnvelope(payload, 1L, null);
+        return new ReportMessageEnvelope(payload, 1L, null, 999L);
     }
 }

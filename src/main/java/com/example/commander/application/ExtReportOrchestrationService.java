@@ -125,7 +125,6 @@ public class ExtReportOrchestrationService {
 
         Instant messageInstant = resolveMessageInstant(extMessage);
         Recipient recipient = new Recipient(
-                recipientRow.get().id(),
                 RecipientType.valueOf(recipientRow.get().type()),
                 recipientRow.get().value(),
                 recipientRow.get().name());

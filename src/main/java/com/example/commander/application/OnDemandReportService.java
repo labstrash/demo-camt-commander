@@ -116,8 +116,8 @@ public class OnDemandReportService {
             return rejectInvalidWindow(request, config, window, detail);
         }
 
-        Recipient recipientRef = new Recipient(
-                recipient.id(), RecipientType.valueOf(recipient.type()), recipient.value(), recipient.name());
+        Recipient recipientRef =
+                new Recipient(RecipientType.valueOf(recipient.type()), recipient.value(), recipient.name());
         AssemblyContext context = new AssemblyContext(
                 new ReportContext(window, config.reportVersion(), TriggerType.ON_DEMAND),
                 recipientRef,

@@ -141,7 +141,7 @@ DECLARE @Accounts TABLE (
     ScopeSeq       INT          NOT NULL,
     PtaSeq         INT          NOT NULL,
     ClearingNumber NVARCHAR(5)  NOT NULL,
-    AccountNumber  NVARCHAR(9)  NOT NULL,
+    AccountNumber  NVARCHAR(10)  NOT NULL,
     AccountBBAN    NVARCHAR(15) NOT NULL,
     Currency       NVARCHAR(3)  NOT NULL
 );
